@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Compass, Target, Shield, Users, Workflow, Database, type LucideIcon } from "lucide-react";
 
 interface Layer {
   id: number;
@@ -8,7 +9,7 @@ interface Layer {
   question: string;
   subtitle: string;
   color: string;
-  icon: string;
+  Icon: LucideIcon;
   description: string;
   finance: string;
   marketing: string;
@@ -21,7 +22,7 @@ const layers: Layer[] = [
     question: "WOHIN?",
     subtitle: "Richtung & Ambition",
     color: "#64B5C6",
-    icon: "◈",
+    Icon: Compass,
     description:
       "Vision der Abteilung, strategische Prioritäten, Wertbeitrag zum Unternehmen, Alignment mit Unternehmens-/PE-Strategie, Transformationsziele.",
     finance:
@@ -35,7 +36,7 @@ const layers: Layer[] = [
     question: "WAS & FÜR WEN?",
     subtitle: "Leistungsversprechen",
     color: "#4A9CAD",
-    icon: "◎",
+    Icon: Target,
     description:
       "Definition der Leistungen an interne/externe Stakeholder. Service-Katalog, SLAs, Qualitätsstandards, Interaktionsmodell mit dem Business.",
     finance:
@@ -49,7 +50,7 @@ const layers: Layer[] = [
     question: "INNERHALB WELCHER REGELN?",
     subtitle: "Rahmen & Kontrolle",
     color: "#4CAF7A",
-    icon: "◆",
+    Icon: Shield,
     description:
       "Entscheidungswege, Richtlinien, interne Kontrollen (IKS), Compliance-Rahmen, RACI-Matrizen, Approval Workflows, Reporting Lines.",
     finance:
@@ -63,7 +64,7 @@ const layers: Layer[] = [
     question: "WER?",
     subtitle: "Menschen & Struktur",
     color: "#E5A84B",
-    icon: "◉",
+    Icon: Users,
     description:
       "Organisationsstruktur, Rollenprofile, Skill-Matrix, Sourcing-Modell (Inhouse vs. Outsourced vs. Shared Services vs. CoE), Kapazitätsplanung.",
     finance:
@@ -77,7 +78,7 @@ const layers: Layer[] = [
     question: "WIE?",
     subtitle: "Abläufe & Automatisierung",
     color: "#5D7186",
-    icon: "⟐",
+    Icon: Workflow,
     description:
       "End-to-End-Prozesse, Teilprozesse, Automatisierungsgrad, Schnittstellen zwischen Abteilungen, SOP-Dokumentation.",
     finance:
@@ -91,7 +92,7 @@ const layers: Layer[] = [
     question: "WOMIT?",
     subtitle: "Werkzeuge & Fundament",
     color: "#3D4F5F",
-    icon: "⬡",
+    Icon: Database,
     description:
       "IT-Systemlandschaft, Datenarchitektur, Integrationen, Master Data Management, Infrastruktur (Cloud/On-Prem).",
     finance:
@@ -121,6 +122,7 @@ const PyramidLayer = ({
   const progress = index / (total - 1);
   const widthPercent = 25 + 75 * progress;
   const isTop = index === 0;
+  const IconComponent = layer.Icon;
 
   return (
     <div
@@ -130,7 +132,7 @@ const PyramidLayer = ({
       className="animate-tom-reveal relative cursor-pointer transition-all duration-200 ease-out flex items-center justify-center gap-3"
       style={{
         width: `${widthPercent}%`,
-        height: 64,
+        height: 76,
         animationDelay: `${index * 0.07}s`,
         borderRadius:
           index === 0
@@ -140,16 +142,18 @@ const PyramidLayer = ({
             : "4px",
         background: isTop
           ? `linear-gradient(135deg, ${layer.color}, #4A9CAD)`
-          : `linear-gradient(135deg, hsl(210 25% 11%), hsl(210 22% 14%))`,
+          : `rgba(20, 30, 42, 0.55)`,
+        backdropFilter: isTop ? undefined : "blur(12px)",
+        WebkitBackdropFilter: isTop ? undefined : "blur(12px)",
         border: isHovered
           ? `1px solid ${layer.color}90`
           : isTop
           ? `1px solid ${layer.color}40`
-          : "1px solid hsl(210 20% 16% / 0.5)",
+          : "1px solid rgba(255,255,255,0.08)",
         transform: isHovered ? "scale(1.03)" : "scale(1)",
         boxShadow: isHovered
-          ? `0 8px 32px ${layer.color}30, inset 0 1px 0 ${layer.color}20`
-          : "0 2px 8px rgba(0,0,0,0.3)",
+          ? `0 8px 32px ${layer.color}30, inset 0 1px 0 rgba(255,255,255,0.1)`
+          : "0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)",
       }}
     >
       {/* Left accent line */}
@@ -160,18 +164,17 @@ const PyramidLayer = ({
         }}
       />
 
-      <span
-        className="text-base flex-shrink-0"
+      <IconComponent
+        size={22}
+        className="flex-shrink-0"
         style={{ color: isTop ? "#0A1017" : `${layer.color}90` }}
-      >
-        {layer.icon}
-      </span>
+      />
 
       <div className="text-center min-w-0">
         <div
           className="font-display font-semibold tracking-wide leading-tight truncate"
           style={{
-            fontSize: widthPercent < 45 ? 10 : 13,
+            fontSize: widthPercent < 45 ? 14 : 16,
             color: isTop ? "#0A1017" : "hsl(195 40% 93%)",
           }}
         >
@@ -179,7 +182,7 @@ const PyramidLayer = ({
         </div>
         {widthPercent > 40 && (
           <div
-            className="font-mono-brand text-[8px] tracking-[0.1em] mt-1"
+            className="font-mono-brand text-[10px] tracking-[0.1em] mt-1"
             style={{
               color: isTop ? "#0A101780" : "hsl(210 13% 45% / 0.6)",
             }}
@@ -212,27 +215,28 @@ const DetailModal = ({
   onClose: () => void;
 }) => {
   if (!layer) return null;
+  const IconComponent = layer.Icon;
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="glass-card sm:max-w-[560px] p-0 gap-0 border-border/60 shadow-2xl">
+      <DialogContent className="glass-card sm:max-w-[620px] p-0 gap-0 border-border/60 shadow-2xl">
         <DialogHeader className="p-6 pb-4 border-b border-border/50">
           <div className="flex items-center gap-3.5">
             <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-lg border"
+              className="w-11 h-11 rounded-lg flex items-center justify-center border"
               style={{
                 backgroundColor: `${layer.color}15`,
                 borderColor: `${layer.color}30`,
                 color: layer.color,
               }}
             >
-              {layer.icon}
+              <IconComponent size={22} />
             </div>
             <div>
-              <DialogTitle className="font-display text-base font-medium tracking-wide text-foreground">
+              <DialogTitle className="font-display text-xl font-medium tracking-wide text-foreground">
                 {layer.label}
               </DialogTitle>
-              <DialogDescription className="font-mono-brand text-[10px] tracking-[0.12em] mt-1" style={{ color: layer.color }}>
+              <DialogDescription className="font-mono-brand text-xs tracking-[0.12em] mt-1" style={{ color: layer.color }}>
                 {layer.question} — {layer.subtitle}
               </DialogDescription>
             </div>
@@ -241,33 +245,33 @@ const DetailModal = ({
 
         <Tabs defaultValue="overview" className="p-6 pt-4">
           <TabsList className="bg-muted/50 border border-border/40 mb-4">
-            <TabsTrigger value="overview" className="font-mono-brand text-[11px] tracking-wide data-[state=active]:text-primary">
+            <TabsTrigger value="overview" className="font-mono-brand text-sm tracking-wide data-[state=active]:text-primary">
               ÜBERSICHT
             </TabsTrigger>
-            <TabsTrigger value="finance" className="font-mono-brand text-[11px] tracking-wide data-[state=active]:text-[#4CAF7A]">
+            <TabsTrigger value="finance" className="font-mono-brand text-sm tracking-wide data-[state=active]:text-[#4CAF7A]">
               FINANCE
             </TabsTrigger>
-            <TabsTrigger value="marketing" className="font-mono-brand text-[11px] tracking-wide data-[state=active]:text-[#E5A84B]">
+            <TabsTrigger value="marketing" className="font-mono-brand text-sm tracking-wide data-[state=active]:text-[#E5A84B]">
               MARKETING
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="text-sm leading-relaxed text-muted-foreground mt-0">
+          <TabsContent value="overview" className="text-base leading-relaxed text-muted-foreground mt-0">
             {layer.description}
           </TabsContent>
 
           <TabsContent value="finance" className="mt-0">
-            <div className="font-mono-brand text-[9px] tracking-[0.15em] text-[#4CAF7A] mb-2.5">
+            <div className="font-mono-brand text-[11px] tracking-[0.15em] text-[#4CAF7A] mb-2.5">
               FINANCE-BEISPIEL
             </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">{layer.finance}</p>
+            <p className="text-base leading-relaxed text-muted-foreground">{layer.finance}</p>
           </TabsContent>
 
           <TabsContent value="marketing" className="mt-0">
-            <div className="font-mono-brand text-[9px] tracking-[0.15em] text-[#E5A84B] mb-2.5">
+            <div className="font-mono-brand text-[11px] tracking-[0.15em] text-[#E5A84B] mb-2.5">
               MARKETING-BEISPIEL
             </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">{layer.marketing}</p>
+            <p className="text-base leading-relaxed text-muted-foreground">{layer.marketing}</p>
           </TabsContent>
         </Tabs>
       </DialogContent>
@@ -294,15 +298,15 @@ export default function TOMPyramid() {
       {/* Pyramid Container */}
       <div className="relative w-full max-w-[820px] flex justify-center">
         {/* Left arrow – BOTTOM-UP / UMSETZUNG */}
-        <div className="absolute left-0 top-8 bottom-8 w-11 hidden md:flex flex-col items-center justify-center">
-          <span className="font-mono-brand text-[7px] tracking-[0.1em] text-muted-foreground/60 mb-2">
+        <div className="absolute left-0 top-8 bottom-8 w-14 hidden md:flex flex-col items-center justify-center">
+          <span className="font-mono-brand text-[10px] tracking-[0.1em] text-muted-foreground mb-2">
             BOTTOM-UP
           </span>
-          <div className="w-px flex-1 bg-gradient-to-b from-border to-muted-foreground/30 relative">
-            <div className="absolute -top-1 -left-[3px] w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-b-[6px] border-b-border" />
+          <div className="w-0.5 flex-1 bg-gradient-to-b from-border to-muted-foreground/30 relative">
+            <div className="absolute -top-1 -left-[4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-b-[8px] border-b-border" />
           </div>
           <span
-            className="font-mono-brand text-[8px] tracking-[0.15em] text-muted-foreground/40 mt-2"
+            className="font-mono-brand text-[11px] tracking-[0.15em] text-muted-foreground/80 mt-2"
             style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
           >
             UMSETZUNG
@@ -326,15 +330,15 @@ export default function TOMPyramid() {
         </div>
 
         {/* Right arrow – TOP-DOWN / DESIGN */}
-        <div className="absolute right-0 top-8 bottom-8 w-11 hidden md:flex flex-col items-center justify-center">
-          <span className="font-mono-brand text-[7px] tracking-[0.1em] text-muted-foreground/60 mb-2">
+        <div className="absolute right-0 top-8 bottom-8 w-14 hidden md:flex flex-col items-center justify-center">
+          <span className="font-mono-brand text-[10px] tracking-[0.1em] text-muted-foreground mb-2">
             TOP-DOWN
           </span>
-          <div className="w-px flex-1 bg-gradient-to-b from-muted-foreground/30 to-border relative">
-            <div className="absolute -bottom-1 -left-[3px] w-0 h-0 border-l-[4px] border-l-transparent border-r-[4px] border-r-transparent border-t-[6px] border-t-border" />
+          <div className="w-0.5 flex-1 bg-gradient-to-b from-muted-foreground/30 to-border relative">
+            <div className="absolute -bottom-1 -left-[4px] w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[8px] border-t-border" />
           </div>
           <span
-            className="font-mono-brand text-[8px] tracking-[0.15em] text-muted-foreground/40 mt-2"
+            className="font-mono-brand text-[11px] tracking-[0.15em] text-muted-foreground/80 mt-2"
             style={{ writingMode: "vertical-rl" }}
           >
             DESIGN
