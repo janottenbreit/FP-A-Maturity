@@ -180,7 +180,7 @@ const PyramidLayer = ({
         >
           {layer.label}
         </div>
-        {widthPercent > 40 && (
+        {widthPercent > 30 && (
           <div
             className="font-mono-brand text-[10px] tracking-[0.1em] mt-0.5"
             style={{
@@ -190,7 +190,7 @@ const PyramidLayer = ({
             {layer.question}
           </div>
         )}
-        {widthPercent > 35 && (
+        {(
           <div
             className="font-mono-brand text-xs tracking-[0.08em] mt-0.5 font-medium"
             style={{
