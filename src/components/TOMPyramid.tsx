@@ -132,7 +132,7 @@ const PyramidLayer = ({
       className="animate-tom-reveal relative cursor-pointer transition-all duration-200 ease-out flex items-center justify-center gap-3"
       style={{
         width: `${widthPercent}%`,
-        height: 76,
+        height: 82,
         animationDelay: `${index * 0.07}s`,
         borderRadius:
           index === 0
@@ -172,7 +172,7 @@ const PyramidLayer = ({
 
       <div className="text-center min-w-0">
         <div
-          className="font-display font-semibold tracking-wide leading-tight truncate"
+          className={`font-display font-semibold tracking-wide leading-tight ${isTop ? 'whitespace-normal text-center' : 'truncate'}`}
           style={{
             fontSize: widthPercent < 45 ? 14 : 16,
             color: isTop ? "#0A1017" : "hsl(195 40% 93%)",
@@ -182,12 +182,22 @@ const PyramidLayer = ({
         </div>
         {widthPercent > 40 && (
           <div
-            className="font-mono-brand text-[10px] tracking-[0.1em] mt-1"
+            className="font-mono-brand text-[10px] tracking-[0.1em] mt-0.5"
             style={{
               color: isTop ? "#0A101780" : "hsl(210 13% 45% / 0.6)",
             }}
           >
             {layer.question}
+          </div>
+        )}
+        {widthPercent > 35 && (
+          <div
+            className="font-mono-brand text-xs tracking-[0.08em] mt-0.5 font-medium"
+            style={{
+              color: isTop ? "#0A1017CC" : `${layer.color}E6`,
+            }}
+          >
+            {layer.subtitle}
           </div>
         )}
       </div>
