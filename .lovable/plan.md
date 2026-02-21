@@ -1,31 +1,17 @@
 
 
-## Subtitles in den Pyramid Layers anzeigen
+## Subtitles fuer die oberen Layer sichtbar machen
 
-### Aenderungen an `src/components/TOMPyramid.tsx`
+### Problem
 
-#### 1. Subtitles direkt in den Layer-Bars anzeigen
+Die Breiten-Bedingungen filtern die Subtitles bei den oberen Layern heraus:
+- Layer 0 (Strategie): `widthPercent = 25%` -- sowohl Question (`> 40`) als auch Subtitle (`> 35`) werden ausgeblendet
+- Layer 1 (Service Delivery): `widthPercent = 40%` -- Question (`> 40`) wird ausgeblendet, Subtitle (`> 35`) gerade so sichtbar
 
-Unter dem Label und der Question-Zeile wird ein neuer Subtitle-Text eingeblendet – groesser und farblich kontrastreicher als die bisherige Question-Zeile.
+### Loesung in `src/components/TOMPyramid.tsx`
 
-- **Strategie-Layer**: Subtitle "Wohin?" sichtbar im Layer-Block, Label "Strategie & Zielbild" umbrechend (Zeilenumbruch erlauben statt `truncate`)
-- **Service Delivery Layer**: Subtitle "Fuer Wen?" sichtbar im Layer-Block
+1. **Subtitle immer anzeigen**: Die Bedingung `widthPercent > 35` entfernen, sodass der Subtitle auf allen Layern sichtbar ist
+2. **Question-Bedingung lockern**: Von `widthPercent > 40` auf `widthPercent > 30` aendern, damit auch Layer 1 die Question-Zeile zeigt (Layer 0 bei 25% zeigt sie weiterhin nicht -- dort ist der Subtitle aber ausreichend)
 
-#### 2. Subtitle-Styling
-
-- Schriftgroesse: `text-xs` (12px) statt der bisherigen 10px Question-Zeile
-- Farbe: Die jeweilige Layer-Akzentfarbe (`layer.color`) mit hoher Deckkraft fuer starken Kontrast
-- Beim Top-Layer (Strategie): dunklere Variante passend zum hellen Hintergrund
-
-#### 3. Label-Umbruch beim Strategie-Layer
-
-- `truncate` entfernen, damit "Strategie & Zielbild" bei Bedarf umbrechen kann
-- `whitespace-normal` und `text-center` beibehalten
-
-### Technische Details
-
-- In der `PyramidLayer`-Komponente wird `layer.subtitle` als zusaetzliche Zeile unterhalb der Question gerendert
-- Bedingung: Nur anzeigen wenn `widthPercent > 35` (damit es auf schmalen Layern nicht gequetscht wird)
-- Layer-Hoehe von 76px auf ~82px erhoehen fuer den zusaetzlichen Text
-- Die Question-Zeile und Subtitle werden beide angezeigt – Question bleibt als Kontext-Label, Subtitle als prominenterer Text darunter
+Damit werden "Richtung & Ambition" (Strategie) und "Leistungsversprechen" (Service Delivery) auf allen Layern sichtbar. Die Question-Zeile ("WOHIN?", "WAS & FUER WEN?") bleibt als sekundaerer Kontext-Hinweis.
 
