@@ -95,7 +95,7 @@ const layers: Layer[] = [
       intro:
         "Marketing entwickelt sich von der Kostenstelle zur Revenue Engine – mit messbarem Beitrag zur Pipeline und datenbasierter Allokation.",
       items: [
-        "Zielbild: „Marketing als Revenue Engine mit messbarem Pipeline-Beitrag, skalierbarer Demand Generation und datenbasierter Budgetallokation"",
+        'Zielbild: \u201EMarketing als Revenue Engine mit messbarem Pipeline-Beitrag, skalierbarer Demand Generation und datenbasierter Budgetallokation\u201C',
         "Shift von Activity-Based zu Revenue-Aligned Marketing – KPIs an Unternehmensziele gekoppelt",
         "Integration in RevOps: Marketing, Sales und Customer Success als integriertes Revenue Team",
         "Markenpositionierung als strategisches Asset: Brand Equity in Unternehmensbewertung verankern",
