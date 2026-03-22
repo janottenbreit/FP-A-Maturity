@@ -77,7 +77,7 @@ const layers: Layer[] = [
       intro:
         "Die CFO-Organisation transformiert sich vom Number Cruncher zum strategischen Business Partner – in PE-Kontexten mit klarem Fokus auf Exit-Readiness und Value Creation.",
       items: [
-        "Zielbild: „Finance als strategischer Business Partner mit datengetriebener Entscheidungsunterstützung, automatisierten Standardprozessen und investorengerechtem Reporting – Close ≤5 BD"",
+        'Zielbild: \u201EFinance als strategischer Business Partner mit datengetriebener Entscheidungsunterst\u00FCtzung, automatisierten Standardprozessen und investorengerechtem Reporting \u2013 Close \u22645 BD\u201C',
         "PE-Kontext: Alignment der Finance-Strategie mit Value Creation Plan des Sponsors (z.B. EBITDA-Expansion, NRR-Verbesserung, Working Capital Optimierung)",
         "Three-Pillar-Modell (Deloitte): Operational Finance (transaktional) → Business Finance (advisory) → Specialized Finance (M&A, Tax, Treasury)",
         "Kompetenzshift: Von HGB-/IFRS-Buchhaltung zu Datenanalyse, Szenariomodellierung und Ökonometrie",
