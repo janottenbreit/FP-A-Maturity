@@ -660,7 +660,6 @@ const DetailModal = ({
             </TabsContent>
           </div>
         </Tabs>
-        </Tabs>
       </DialogContent>
     </Dialog>
   );
