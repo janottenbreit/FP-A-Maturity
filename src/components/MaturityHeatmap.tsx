@@ -1,10 +1,23 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 import { LEVELS, DIMENSIONS, CELL_DATA, type Level, type Dimension } from "@/constants/maturityData";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface SelectedCell {
   dimension: Dimension;
   level: Level;
+}
+
+function hexToRgb(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r},${g},${b}`;
 }
 
 const HeatmapCell = ({
@@ -29,34 +42,31 @@ const HeatmapCell = ({
       onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="cursor-pointer transition-all duration-200 rounded-lg p-3 min-h-[80px] flex items-start"
+      className="cursor-pointer transition-all duration-200 p-2 flex items-start"
       style={{
+        borderRadius: "6px",
+        minHeight: "64px",
         background: active
-          ? `rgba(${hexToRgb(level.color)}, 0.2)`
+          ? `rgba(${hexToRgb(level.color)}, 0.22)`
           : isColumnHovered
           ? `rgba(${hexToRgb(level.color)}, 0.1)`
           : `rgba(${hexToRgb(level.color)}, 0.06)`,
         border: isSelected
           ? `2px solid ${level.color}`
           : hovered
-          ? `1px solid ${level.color}60`
+          ? `1px solid #D4A84360`
           : "1px solid rgba(255,255,255,0.06)",
-        transform: hovered ? "scale(1.03)" : "scale(1)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        boxShadow: active
-          ? `0 4px 20px ${level.color}20`
-          : "0 1px 4px rgba(0,0,0,0.2)",
-        padding: isSelected ? "11px" : "12px",
+        transform: hovered ? "scale(1.02)" : "scale(1)",
+        padding: isSelected ? "7px" : "8px",
       }}
     >
       <p
-        className="text-xs leading-relaxed"
+        className="text-[11px] leading-relaxed"
         style={{
-          color: active ? "hsl(195 40% 93%)" : "hsl(210 15% 70%)",
+          color: active ? "#FFFFFF" : "#B0B5CC",
         }}
       >
-        {data.desc}
+        {data.short}
       </p>
     </div>
   );
@@ -74,9 +84,10 @@ const DetailPanel = ({
 
   return (
     <div
-      className="animate-tom-slide-up glass-card rounded-xl p-5 md:p-6 max-w-[800px] mx-auto w-full relative"
+      className="animate-tom-slide-up rounded-[10px] p-4 md:p-5 max-w-[860px] mx-auto w-full relative"
       style={{
-        border: `1px solid ${cell.level.color}40`,
+        backgroundColor: "#2A3158",
+        border: `1px solid rgba(${hexToRgb(cell.level.color)}, 0.3)`,
       }}
     >
       <button
@@ -86,15 +97,16 @@ const DetailPanel = ({
         <X size={14} />
       </button>
 
-      <div className="flex items-center gap-3 mb-5">
-        <IconComponent size={20} style={{ color: "#D4A843" }} />
+      {/* Panel Header */}
+      <div className="flex items-center gap-3 mb-4">
+        <IconComponent size={22} style={{ color: "#D4A843" }} />
         <span className="font-display text-lg font-semibold" style={{ color: "#D4A843" }}>
           {cell.dimension.label}
         </span>
         <span
-          className="font-mono-brand text-[11px] tracking-wide px-2.5 py-0.5 rounded-full"
+          className="font-mono-brand text-[11px] font-bold tracking-wide px-2.5 py-0.5 rounded-full"
           style={{
-            backgroundColor: `${cell.level.color}30`,
+            backgroundColor: `${cell.level.color}40`,
             color: cell.level.color,
           }}
         >
@@ -102,36 +114,79 @@ const DetailPanel = ({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div>
-          <div className="font-mono-brand text-[11px] tracking-[0.12em] text-muted-foreground mb-2">
-            BESCHREIBUNG
-          </div>
-          <p className="text-sm leading-relaxed text-foreground">{data.desc}</p>
-        </div>
-        <div>
-          <div className="font-mono-brand text-[11px] tracking-[0.12em] mb-2" style={{ color: "#E85D5D" }}>
-            ⚠ CONSTRAINT
-          </div>
-          <p className="text-sm leading-relaxed text-foreground">{data.constraint}</p>
-        </div>
-        <div>
-          <div className="font-mono-brand text-[11px] tracking-[0.12em] mb-2" style={{ color: "#4ECDC4" }}>
-            ↗ GRADUATE
-          </div>
-          <p className="text-sm leading-relaxed text-foreground">{data.graduate}</p>
-        </div>
-      </div>
+      {/* Accordion */}
+      <Accordion type="single" collapsible defaultValue="beschreibung">
+        <AccordionItem value="beschreibung" className="border-b-0 mb-1">
+          <AccordionTrigger
+            className="py-2.5 px-3 rounded-md hover:no-underline text-[11px] font-bold uppercase tracking-[0.12em]"
+            style={{ color: "#FFFFFF", backgroundColor: "transparent", border: "1px solid #3D4470" }}
+          >
+            <span className="flex items-center gap-2">
+              <span>📋</span> BESCHREIBUNG
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-3 pt-2">
+            <p className="text-[13px] leading-relaxed" style={{ color: "#C8CCE0" }}>
+              {data.desc}
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="beispiele" className="border-b-0 mb-1">
+          <AccordionTrigger
+            className="py-2.5 px-3 rounded-md hover:no-underline text-[11px] font-bold uppercase tracking-[0.12em]"
+            style={{ color: "#D4A843", backgroundColor: "transparent", border: "1px solid #3D4470" }}
+          >
+            <span className="flex items-center gap-2">
+              <span>💡</span> BEISPIELE ({data.examples.length})
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-3 pt-2">
+            <ul className="space-y-1.5">
+              {data.examples.map((ex, i) => (
+                <li key={i} className="text-[13px] leading-relaxed" style={{ color: "#C8CCE0" }}>
+                  <span style={{ color: "#D4A843" }}>▸</span> {ex}
+                </li>
+              ))}
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="constraint" className="border-b-0 mb-1">
+          <AccordionTrigger
+            className="py-2.5 px-3 rounded-md hover:no-underline text-[11px] font-bold uppercase tracking-[0.12em]"
+            style={{ color: "#E85D5D", backgroundColor: "transparent", border: "1px solid #3D4470" }}
+          >
+            <span className="flex items-center gap-2">
+              <span>⚠</span> CONSTRAINT
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-3 pt-2">
+            <p className="text-[13px] leading-relaxed" style={{ color: "#C8CCE0" }}>
+              {data.constraint}
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="graduate" className="border-b-0">
+          <AccordionTrigger
+            className="py-2.5 px-3 rounded-md hover:no-underline text-[11px] font-bold uppercase tracking-[0.12em]"
+            style={{ color: "#4ECDC4", backgroundColor: "transparent", border: "1px solid #3D4470" }}
+          >
+            <span className="flex items-center gap-2">
+              <span>↗</span> GRADUATE — NÄCHSTES LEVEL
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-3 pt-2">
+            <p className="text-[13px] leading-relaxed" style={{ color: "#C8CCE0" }}>
+              {data.graduate}
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };
-
-function hexToRgb(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r},${g},${b}`;
-}
 
 export default function MaturityHeatmap() {
   const [selected, setSelected] = useState<SelectedCell | null>(null);
@@ -146,7 +201,7 @@ export default function MaturityHeatmap() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center px-5 md:px-8 py-10 md:py-16">
+    <div className="min-h-screen bg-background flex flex-col items-center px-5 md:px-7 py-10 md:py-16">
       {/* Header */}
       <header className="text-center mb-10 max-w-xl">
         <h1 className="font-display text-2xl md:text-[34px] font-semibold leading-tight tracking-tight mb-3">
@@ -163,14 +218,16 @@ export default function MaturityHeatmap() {
         {LEVELS.map((level) => (
           <div
             key={level.id}
-            className="font-mono-brand text-[11px] tracking-wide px-3 py-1.5 rounded-full transition-opacity duration-200"
+            className="flex items-center gap-1.5 font-mono-brand text-[11px] tracking-wide transition-opacity duration-200"
             style={{
-              backgroundColor: `${level.color}20`,
               color: level.color,
-              border: `1px solid ${level.color}30`,
               opacity: hoveredCol !== null && hoveredCol !== level.id ? 0.35 : 1,
             }}
           >
+            <span
+              className="inline-block w-2.5 h-2.5 rounded-sm"
+              style={{ backgroundColor: level.color }}
+            />
             {level.short} – {level.name}
           </div>
         ))}
@@ -179,11 +236,11 @@ export default function MaturityHeatmap() {
       {/* Heatmap Grid */}
       <div className="w-full max-w-[960px] overflow-x-auto pb-2">
         <div
-          className="min-w-[700px]"
+          className="min-w-[820px]"
           style={{
             display: "grid",
-            gridTemplateColumns: "140px repeat(5, 1fr)",
-            gap: "6px",
+            gridTemplateColumns: "120px repeat(5, 1fr)",
+            gap: "4px",
           }}
         >
           {/* Column Headers */}
@@ -191,12 +248,15 @@ export default function MaturityHeatmap() {
           {LEVELS.map((level) => (
             <div
               key={level.id}
-              className="font-display text-sm font-semibold tracking-wide text-center pb-2 cursor-default"
-              style={{ color: level.color }}
+              className="text-center pb-2 cursor-default"
+              style={{ borderBottom: `2px solid ${level.color}` }}
               onMouseEnter={() => setHoveredCol(level.id)}
               onMouseLeave={() => setHoveredCol(null)}
             >
-              {level.name}
+              <div className="font-display text-sm font-semibold" style={{ color: level.color }}>
+                {level.short}
+              </div>
+              <div className="text-[10px] text-muted-foreground">{level.name}</div>
             </div>
           ))}
 
@@ -206,10 +266,10 @@ export default function MaturityHeatmap() {
             return (
               <div key={dim.id} className="contents">
                 {/* Row label */}
-                <div className="flex items-center gap-2 pr-3 min-h-[80px]">
+                <div className="flex items-center gap-2 pr-2 min-h-[64px]">
                   <IconComponent size={16} style={{ color: "#D4A843" }} className="flex-shrink-0" />
                   <span
-                    className="font-mono-brand text-xs font-bold tracking-wide uppercase"
+                    className="font-mono-brand text-[11px] font-bold tracking-wide uppercase"
                     style={{ color: "#D4A843" }}
                   >
                     {dim.label}
@@ -238,8 +298,8 @@ export default function MaturityHeatmap() {
         {selected ? (
           <DetailPanel cell={selected} onClose={() => setSelected(null)} />
         ) : (
-          <p className="text-center text-sm italic text-muted-foreground">
-            Klicke auf eine Zelle für Details — Constraint & Graduation Criteria
+          <p className="text-center text-[11px] italic" style={{ color: "#3D4470" }}>
+            Klicke auf eine Zelle für Details — Beschreibung, Beispiele, Constraint & Graduation
           </p>
         )}
       </div>
