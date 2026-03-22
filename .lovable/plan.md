@@ -1,57 +1,48 @@
 
 
-## FP&A Maturity Heatmap — Zweite Seite
+## FP&A Maturity Heatmap v2 — Upgrade
 
-Neue Seite `/maturity` mit einer interaktiven 6x5 Heatmap-Matrix, angepasst an das bestehende Design-System (dunkles Theme, Glassmorphism, Montserrat/JetBrains Mono statt Bebas Neue/Inter, Teal-Akzentfarben).
+Upgrade der bestehenden Heatmap-Seite gemaess der neuen Spec v2. Zwei grosse Aenderungen: (1) reichere Zelldaten mit `short`, `examples`-Array und laengeren Texten, (2) Detail-Panel wird von 3-Spalten-Layout zu Accordion-basiertem Layout umgebaut.
 
-### Neue Dateien
+### 1. Datenmodell erweitern — `src/constants/maturityData.ts`
 
-#### 1. `src/constants/maturityData.ts`
-- Alle 6 Dimensionen (Reporting, Analysis, Forecasting, Consulting, Talent, Data/Tools) mit Lucide-Icons
-- 5 Maturity Levels mit Farbrampe (Coral → Amber → Gold → Teal → Green)
-- Zelldaten: `desc`, `constraint`, `graduate` fuer jede Dimension x Level Kombination
-- Design-Token-Konstanten (Farben fuer Level-Tinting)
+- `CellData` Interface erweitern: neues `short`-Feld (kurzer Text fuer die Zelle) und `examples: string[]`-Array
+- Bestehende `desc` bleibt als ausfuehrliche Beschreibung fuer das Detail-Panel
+- Alle 30 Zellen mit den neuen Inhalten aus der Spec befuellen (laengere `desc`, konkrete `examples`, ausfuehrlichere `constraint`/`graduate`)
 
-#### 2. `src/components/MaturityHeatmap.tsx`
-Hauptkomponente mit:
+### 2. Heatmap-Zellen anpassen — `src/components/MaturityHeatmap.tsx`
 
-**Header:** "Reifegrad in FP&A" als Titel in `font-display` (Montserrat) mit Teal-Akzent statt Gold (passend zum bestehenden Schema). Subtitle in `text-muted-foreground`.
+- Zellen zeigen nur `short` statt `desc` an (max ~15 Woerter, Orientierung auf einen Blick)
+- Zellen-Styling anpassen: `min-height: 64px`, `border-radius: 6px`, `gap: 4px`, Hover `scale(1.02)` statt `1.03`
 
-**Legend Bar:** 5 farbige Badges horizontal, zeigen Level-Namen. Bei Column-Hover faden nicht-aktive Items.
+### 3. Detail-Panel zu Accordion umbauen
 
-**Heatmap Grid:** CSS Grid mit `140px` erster Spalte + `repeat(5, 1fr)`. Zellen mit Glassmorphism-Effekt (wie die Pyramid-Layer), Level-Farbe als subtiler Hintergrund-Tint (~12% Opacity). Hover: `scale(1.03)`, Border-Highlight. Klick: Zelle wird aktiv, Detail-Panel oeffnet sich.
+Statt 3-Spalten-Layout wird das Panel ein Accordion mit 4 Sektionen (Radix Accordion bereits im Projekt vorhanden):
 
-**Detail Panel:** Erscheint unterhalb der Matrix mit Slide-In-Animation (`animate-tom-slide-up`). 3-Spalten-Layout: Beschreibung / Constraint (Coral) / Graduate (Teal). Glass-Card-Styling. Close-Button.
+| # | Label | Farbe | Inhalt |
+|---|---|---|---|
+| 1 | BESCHREIBUNG | white | Voller `desc`-Text |
+| 2 | BEISPIELE (n) | gold | Liste der `examples` mit ▸-Prefix |
+| 3 | CONSTRAINT | coral | `constraint`-Text |
+| 4 | GRADUATE — NAECHSTES LEVEL | teal | `graduate`-Text |
 
-**Hint Text:** Sichtbar wenn keine Zelle ausgewaehlt. Italic, `text-muted-foreground`.
+- Single-Expand-Modus (eine Sektion offen, Rest schliesst)
+- Erste Sektion standardmaessig offen
+- Chevron-Rotation bei open/close
+- Panel-Container: `steel-blue` Hintergrund (`#2A3158`), `max-width: 860px`, `border-radius: 10px`
+- Panel-Header: Dimension-Icon + Name (gold, Montserrat) + Level-Badge
 
-**Kein Footer mit Brandname** (wie gewuenscht).
+### 4. Farb- und Styling-Anpassungen
 
-#### 3. `src/pages/Maturity.tsx`
-Rendert `<MaturityHeatmap />`.
+- Beibehalten: Montserrat + JetBrains Mono (statt Bebas Neue/Inter fuer Konsistenz mit TOM-Pyramide)
+- Beibehalten: Kein Footer mit Brandname
+- Grid-Spalte 1: `120px` statt `140px`
+- Column-Headers: Level-Nummer + Name, mit 2px Bottom-Border in Level-Farbe
 
-### Bestehende Dateien anpassen
+### Nicht umgesetzt (bewusst)
 
-#### 4. `src/App.tsx`
-- Route `/maturity` hinzufuegen
-- Import der neuen Page
-
-#### 5. Navigation
-- Minimale Navigation auf beiden Seiten: Zwei Links oben (z.B. "TOM Pyramide" / "FP&A Reifegrad") als dezente Tab-Navigation im bestehenden Glassmorphism-Stil
-
-#### 6. `src/index.css`
-- Bebas Neue Font importieren fuer die Heatmap-Titel (optional, alternativ Montserrat beibehalten fuer Konsistenz)
-
-### Design-Anpassungen gegenueber Spec
-
-- **Kein Brandname** im Footer
-- **Farben:** Spec-Gold (#D4A843) als Akzentfarbe fuer Headlines beibehalten, da es gut zum dunklen Theme passt. Level-Farbramp wie in Spec.
-- **Fonts:** Montserrat statt Bebas Neue fuer Konsistenz mit der TOM-Pyramide. JetBrains Mono fuer Labels.
-- **Glassmorphism:** Zellen und Detail-Panel nutzen `glass-card`-Effekt und `backdrop-blur` wie die Pyramid-Layer
-- **Animationen:** Bestehende `animate-tom-reveal` und `animate-tom-slide-up` wiederverwenden
-
-### Responsive Verhalten
-
-- Desktop: Volles Grid sichtbar
-- Tablet/Mobile: Horizontaler Scroll auf der Matrix, Detail-Panel wird 1-spaltig
+- Kein Bebas Neue / Inter Fontwechsel (Konsistenz mit bestehender Seite)
+- Kein Footer mit "EDELWORKS"
+- Kein separates `designTokens.ts` File (Farben bleiben inline, wie bisher)
+- Kein Aufsplitten in separate Component-Files (HeatmapCell, DetailPanel etc.) — alles bleibt in einer Datei fuer Einfachheit
 
