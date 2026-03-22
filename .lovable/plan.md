@@ -1,48 +1,43 @@
 
 
-## FP&A Maturity Heatmap v2 — Upgrade
+## TOM Pyramid — Content Enrichment v2
 
-Upgrade der bestehenden Heatmap-Seite gemaess der neuen Spec v2. Zwei grosse Aenderungen: (1) reichere Zelldaten mit `short`, `examples`-Array und laengeren Texten, (2) Detail-Panel wird von 3-Spalten-Layout zu Accordion-basiertem Layout umgebaut.
+Erweiterung der Datenstruktur und des Detail-Modals gemaess der Spec. Die Pyramide selbst bleibt unveraendert.
 
-### 1. Datenmodell erweitern — `src/constants/maturityData.ts`
+### 1. Datenstruktur aendern (`src/components/TOMPyramid.tsx`)
 
-- `CellData` Interface erweitern: neues `short`-Feld (kurzer Text fuer die Zelle) und `examples: string[]`-Array
-- Bestehende `desc` bleibt als ausfuehrliche Beschreibung fuer das Detail-Panel
-- Alle 30 Zellen mit den neuen Inhalten aus der Spec befuellen (laengere `desc`, konkrete `examples`, ausfuehrlichere `constraint`/`graduate`)
+**Layer Interface erweitern:**
+- `details: string[]` — 6-8 Kernelemente pro Schicht
+- `finance` und `marketing` von `string` zu `{ intro: string; items: string[]; kpis: string[] }`
 
-### 2. Heatmap-Zellen anpassen — `src/components/MaturityHeatmap.tsx`
+**Alle 6 Layer** mit den vollstaendigen Inhalten aus Abschnitt 4 der Spec befuellen (neue descriptions, details-Arrays, finance/marketing-Objekte mit intro, items, kpis).
 
-- Zellen zeigen nur `short` statt `desc` an (max ~15 Woerter, Orientierung auf einen Blick)
-- Zellen-Styling anpassen: `min-height: 64px`, `border-radius: 6px`, `gap: 4px`, Hover `scale(1.02)` statt `1.03`
+### 2. Neue UI-Helfer (inline in gleicher Datei)
 
-### 3. Detail-Panel zu Accordion umbauen
+**BulletItem:** Flex-Zeile mit farbigem 5x5px Dot + Text (13px, #B8C4D0, line-height 1.6). Dot vertikal zentriert zur ersten Textzeile (margin-top 7px).
 
-Statt 3-Spalten-Layout wird das Panel ein Accordion mit 4 Sektionen (Radix Accordion bereits im Projekt vorhanden):
+**KPIBadge:** Inline-Badge mit monospace-Font (10px, JetBrains Mono), Hintergrund `#1E2A3680`, Border `#2C3E50`, Textfarbe `#64B5C6`.
 
-| # | Label | Farbe | Inhalt |
-|---|---|---|---|
-| 1 | BESCHREIBUNG | white | Voller `desc`-Text |
-| 2 | BEISPIELE (n) | gold | Liste der `examples` mit ▸-Prefix |
-| 3 | CONSTRAINT | coral | `constraint`-Text |
-| 4 | GRADUATE — NAECHSTES LEVEL | teal | `graduate`-Text |
+### 3. Detail-Modal Anpassungen
 
-- Single-Expand-Modus (eine Sektion offen, Rest schliesst)
-- Erste Sektion standardmaessig offen
-- Chevron-Rotation bei open/close
-- Panel-Container: `steel-blue` Hintergrund (`#2A3158`), `max-width: 860px`, `border-radius: 10px`
-- Panel-Header: Dimension-Icon + Name (gold, Montserrat) + Level-Badge
+**Modal-Container:** `maxHeight: 88vh`, Scrollbar auf den Content-Bereich.
 
-### 4. Farb- und Styling-Anpassungen
+**Sticky Header:** Header-Block (Icon + Titel + Tabs) wird `sticky top-0 z-10` mit solidem Hintergrund (`#151F28`), damit Tabs beim Scrollen sichtbar bleiben. Tabs werden aus dem Content- in den Header-Bereich verschoben (unter die Titelzeile, mt-4).
 
-- Beibehalten: Montserrat + JetBrains Mono (statt Bebas Neue/Inter fuer Konsistenz mit TOM-Pyramide)
-- Beibehalten: Kein Footer mit Brandname
-- Grid-Spalte 1: `120px` statt `140px`
-- Column-Headers: Level-Nummer + Name, mit 2px Bottom-Border in Level-Farbe
+**Tab "Uebersicht":**
+1. `layer.description` als Absatz
+2. Label "KERNELEMENTE" (JetBrains Mono, 9px, tracking 0.12em, Farbe #5D7186)
+3. BulletItem-Liste aus `layer.details[]` mit `color = layer.color`
 
-### Nicht umgesetzt (bewusst)
+**Tab "Finance" / "Marketing":**
+1. `data.intro` als Einleitungsabsatz
+2. Label "FINANCE-DETAILS" / "MARKETING-DETAILS" (Finance: #4CAF7A, Marketing: #E5A84B)
+3. BulletItem-Liste aus `data.items[]` mit jeweiliger Label-Farbe
+4. Trennlinie (`border-top: 1px solid #1E2A36`, mt-4, pt-3.5)
+5. Label "RELEVANTE KPIs" (9px, #5D7186)
+6. Flex-Wrap Container mit KPIBadge-Komponenten aus `data.kpis[]`
 
-- Kein Bebas Neue / Inter Fontwechsel (Konsistenz mit bestehender Seite)
-- Kein Footer mit "EDELWORKS"
-- Kein separates `designTokens.ts` File (Farben bleiben inline, wie bisher)
-- Kein Aufsplitten in separate Component-Files (HeatmapCell, DetailPanel etc.) — alles bleibt in einer Datei fuer Einfachheit
+### 4. Keine Aenderungen
+
+Pyramide (Layout, Hover, Arrows, Legend, Subtitles) bleibt komplett unveraendert. Nur die Daten und das Modal werden erweitert.
 
