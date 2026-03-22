@@ -569,41 +569,41 @@ const DetailModal = ({
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent
-        className="glass-card sm:max-w-[620px] p-0 gap-0 border-border/60 shadow-2xl overflow-hidden"
+        className="glass-card sm:max-w-[620px] p-0 gap-0 border-border/60 shadow-2xl overflow-hidden flex flex-col"
         style={{ maxHeight: "88vh" }}
       >
-        {/* Sticky header with tabs */}
-        <div
-          className="sticky top-0 z-10 border-b"
-          style={{ background: "#151F28", borderColor: "#1E2A36" }}
-        >
-          <DialogHeader className="p-6 pb-0">
-            <div className="flex items-center gap-3.5">
-              <div
-                className="w-11 h-11 rounded-lg flex items-center justify-center border"
-                style={{
-                  backgroundColor: `${layer.color}15`,
-                  borderColor: `${layer.color}30`,
-                  color: layer.color,
-                }}
-              >
-                <IconComponent size={22} />
-              </div>
-              <div>
-                <DialogTitle className="font-display text-xl font-medium tracking-wide text-foreground">
-                  {layer.label}
-                </DialogTitle>
-                <DialogDescription
-                  className="font-mono-brand text-xs tracking-[0.12em] mt-1"
-                  style={{ color: layer.color }}
+        <Tabs defaultValue="overview" className="flex flex-col overflow-hidden">
+          {/* Sticky header with tabs */}
+          <div
+            className="flex-shrink-0 border-b"
+            style={{ background: "#151F28", borderColor: "#1E2A36" }}
+          >
+            <DialogHeader className="p-6 pb-0">
+              <div className="flex items-center gap-3.5">
+                <div
+                  className="w-11 h-11 rounded-lg flex items-center justify-center border"
+                  style={{
+                    backgroundColor: `${layer.color}15`,
+                    borderColor: `${layer.color}30`,
+                    color: layer.color,
+                  }}
                 >
-                  {layer.question} — {layer.subtitle}
-                </DialogDescription>
+                  <IconComponent size={22} />
+                </div>
+                <div>
+                  <DialogTitle className="font-display text-xl font-medium tracking-wide text-foreground">
+                    {layer.label}
+                  </DialogTitle>
+                  <DialogDescription
+                    className="font-mono-brand text-xs tracking-[0.12em] mt-1"
+                    style={{ color: layer.color }}
+                  >
+                    {layer.question} — {layer.subtitle}
+                  </DialogDescription>
+                </div>
               </div>
-            </div>
-          </DialogHeader>
+            </DialogHeader>
 
-          <Tabs defaultValue="overview" className="w-full">
             <TabsList className="bg-muted/50 border border-border/40 mx-6 mt-4 mb-4">
               <TabsTrigger
                 value="overview"
@@ -624,41 +624,42 @@ const DetailModal = ({
                 MARKETING
               </TabsTrigger>
             </TabsList>
-          </Tabs>
-        </div>
+          </div>
 
-        {/* Scrollable content */}
-        <Tabs defaultValue="overview" className="overflow-y-auto p-6 pt-4">
-          <TabsContent value="overview" className="mt-0">
-            <p className="text-base leading-relaxed text-muted-foreground mb-4">
-              {layer.description}
-            </p>
-            <div
-              className="font-mono-brand tracking-[0.12em] mb-2.5"
-              style={{ fontSize: 9, color: "#5D7186" }}
-            >
-              KERNELEMENTE
-            </div>
-            {layer.details.map((d, i) => (
-              <BulletItem key={i} text={d} color={layer.color} />
-            ))}
-          </TabsContent>
+          {/* Scrollable content */}
+          <div className="overflow-y-auto p-6 pt-4">
+            <TabsContent value="overview" className="mt-0">
+              <p className="text-base leading-relaxed text-muted-foreground mb-4">
+                {layer.description}
+              </p>
+              <div
+                className="font-mono-brand tracking-[0.12em] mb-2.5"
+                style={{ fontSize: 9, color: "#5D7186" }}
+              >
+                KERNELEMENTE
+              </div>
+              {layer.details.map((d, i) => (
+                <BulletItem key={i} text={d} color={layer.color} />
+              ))}
+            </TabsContent>
 
-          <TabsContent value="finance" className="mt-0">
-            <DepartmentTab
-              data={layer.finance}
-              labelText="FINANCE-DETAILS"
-              labelColor="#4CAF7A"
-            />
-          </TabsContent>
+            <TabsContent value="finance" className="mt-0">
+              <DepartmentTab
+                data={layer.finance}
+                labelText="FINANCE-DETAILS"
+                labelColor="#4CAF7A"
+              />
+            </TabsContent>
 
-          <TabsContent value="marketing" className="mt-0">
-            <DepartmentTab
-              data={layer.marketing}
-              labelText="MARKETING-DETAILS"
-              labelColor="#E5A84B"
-            />
-          </TabsContent>
+            <TabsContent value="marketing" className="mt-0">
+              <DepartmentTab
+                data={layer.marketing}
+                labelText="MARKETING-DETAILS"
+                labelColor="#E5A84B"
+              />
+            </TabsContent>
+          </div>
+        </Tabs>
         </Tabs>
       </DialogContent>
     </Dialog>
