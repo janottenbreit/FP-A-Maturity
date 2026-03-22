@@ -287,7 +287,7 @@ const layers: Layer[] = [
     color: "#5D7186",
     Icon: Workflow,
     description:
-      "Prozesse definieren, wie die Technologie genutzt und die Organisation eingesetzt wird. Sie übersetzen Systemfähigkeiten in operative Abläufe. KPMG definiert Prozesse als das Herzstück des TOM – „Everything that happens is part of the process." Entscheidend: End-to-End-Perspektive über Abteilungsgrenzen hinweg, nicht isolierte Teilprozesse.",
+      'Prozesse definieren, wie die Technologie genutzt und die Organisation eingesetzt wird. Sie \u00FCbersetzen Systemf\u00E4higkeiten in operative Abl\u00E4ufe. KPMG definiert Prozesse als das Herzst\u00FCck des TOM \u2013 \u201EEverything that happens is part of the process.\u201C Entscheidend: End-to-End-Perspektive \u00FCber Abteilungsgrenzen hinweg, nicht isolierte Teilprozesse.',
     details: [
       "End-to-End-Prozessketten: Vollständige Abbildung von Trigger bis Ergebnis, über Abteilungsgrenzen hinweg",
       "Prozesslandkarte: Hierarchische Darstellung aller Kern-, Management- und Supportprozesse",
