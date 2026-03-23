@@ -1,43 +1,54 @@
 
 
-## TOM Pyramid — Content Enrichment v2
+## HTML-Export — Beide Seiten als selbststaendige HTML-Datei
 
-Erweiterung der Datenstruktur und des Detail-Modals gemaess der Spec. Die Pyramide selbst bleibt unveraendert.
+### Ansatz
 
-### 1. Datenstruktur aendern (`src/components/TOMPyramid.tsx`)
+Ein Export-Button oben rechts in der Navigation, der den gesamten aktuellen DOM-Inhalt (beide Seiten) als eine selbststaendige HTML-Datei herunterlaed. Die Datei enthaelt alle Styles inline und ist ohne Server lauffaehig.
 
-**Layer Interface erweitern:**
-- `details: string[]` — 6-8 Kernelemente pro Schicht
-- `finance` und `marketing` von `string` zu `{ intro: string; items: string[]; kpis: string[] }`
+### Umsetzung
 
-**Alle 6 Layer** mit den vollstaendigen Inhalten aus Abschnitt 4 der Spec befuellen (neue descriptions, details-Arrays, finance/marketing-Objekte mit intro, items, kpis).
+#### 1. Neue Komponente `src/components/ExportButton.tsx`
 
-### 2. Neue UI-Helfer (inline in gleicher Datei)
+- Button mit Download-Icon, positioniert rechts in der AppNav-Leiste
+- Bei Klick:
+  1. Klont das `document.documentElement` 
+  2. Sammelt alle computed Styles aus den `<style>`-Tags und Stylesheets
+  3. Inlinet alle CSS in ein `<style>`-Tag im `<head>`
+  4. Entfernt den Export-Button und die Navigation aus dem Klon
+  5. Fuegt eine einfache Tab-Navigation (reines HTML/JS) hinzu, die zwischen den beiden Seiten wechselt
+  6. Erzeugt einen Blob und triggert den Download als `.html`-Datei
 
-**BulletItem:** Flex-Zeile mit farbigem 5x5px Dot + Text (13px, #B8C4D0, line-height 1.6). Dot vertikal zentriert zur ersten Textzeile (margin-top 7px).
+**Herausforderung:** Beide Seiten muessen im exportierten HTML vorhanden sein, obwohl React-Router immer nur eine rendert.
 
-**KPIBadge:** Inline-Badge mit monospace-Font (10px, JetBrains Mono), Hintergrund `#1E2A3680`, Border `#2C3E50`, Textfarbe `#64B5C6`.
+**Loesung:** Der Export rendert beide Komponenten (`TOMPyramid` + `MaturityHeatmap`) temporaer in ein unsichtbares Container-Element, extrahiert deren HTML, und baut daraus eine statische HTML-Datei mit eigenem Tab-Switching (vanilla JS).
 
-### 3. Detail-Modal Anpassungen
+#### 2. Export-Logik (Kernschritte)
 
-**Modal-Container:** `maxHeight: 88vh`, Scrollbar auf den Content-Bereich.
+1. Beide Komponenten in ein offscreen-`div` rendern (via `createRoot`)
+2. Gesamtes CSS aus dem Dokument einsammeln (Tailwind, Custom Styles, Google Fonts)
+3. HTML-Template bauen:
+   - `<head>`: Google Fonts Link + gesammelte Styles
+   - `<body>`: Tab-Navigation + Container fuer beide Seiten + vanilla JS Tab-Switcher
+4. Als `Blob` → `URL.createObjectURL` → automatischer Download
 
-**Sticky Header:** Header-Block (Icon + Titel + Tabs) wird `sticky top-0 z-10` mit solidem Hintergrund (`#151F28`), damit Tabs beim Scrollen sichtbar bleiben. Tabs werden aus dem Content- in den Header-Bereich verschoben (unter die Titelzeile, mt-4).
+#### 3. `src/components/AppNav.tsx` anpassen
 
-**Tab "Uebersicht":**
-1. `layer.description` als Absatz
-2. Label "KERNELEMENTE" (JetBrains Mono, 9px, tracking 0.12em, Farbe #5D7186)
-3. BulletItem-Liste aus `layer.details[]` mit `color = layer.color`
+- ExportButton rechts neben der Tab-Navigation platzieren
+- Layout: `justify-between` statt `justify-center`, mit leerem Spacer links fuer Zentrierung
 
-**Tab "Finance" / "Marketing":**
-1. `data.intro` als Einleitungsabsatz
-2. Label "FINANCE-DETAILS" / "MARKETING-DETAILS" (Finance: #4CAF7A, Marketing: #E5A84B)
-3. BulletItem-Liste aus `data.items[]` mit jeweiliger Label-Farbe
-4. Trennlinie (`border-top: 1px solid #1E2A36`, mt-4, pt-3.5)
-5. Label "RELEVANTE KPIs" (9px, #5D7186)
-6. Flex-Wrap Container mit KPIBadge-Komponenten aus `data.kpis[]`
+#### 4. Einschraenkungen
 
-### 4. Keine Aenderungen
+- Interaktive Features (Klick auf Zellen, Modal-Dialoge) funktionieren im Export **nicht** — es ist ein statischer Snapshot
+- Alternativ: Der Export koennte die gesamte App als self-contained SPA exportieren, aber das waere extrem komplex
 
-Pyramide (Layout, Hover, Arrows, Legend, Subtitles) bleibt komplett unveraendert. Nur die Daten und das Modal werden erweitert.
+### Offene Frage
+
+Die interaktiven Features (Heatmap-Klick, Pyramiden-Modal) gehen bei einem statischen HTML-Export verloren. Zwei Optionen:
+
+**Option A — Statischer Snapshot:** Schnell umsetzbar, zeigt beide Seiten als Read-Only-Ansicht. Kein JavaScript noetig ausser Tab-Switching.
+
+**Option B — Vollstaendige Kopie:** Exportiert den gesamten gebauten App-Code (JS-Bundle + CSS + HTML) als ZIP. Vollstaendig interaktiv, aber groesser (~500KB+) und komplexer.
+
+Ich empfehle **Option A** fuer den ersten Wurf — clean, leichtgewichtig, teilbar.
 
