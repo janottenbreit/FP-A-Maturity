@@ -12,7 +12,7 @@ function exportBuildPlugin(): Plugin {
         if (req.url !== "/__export") return next();
 
         try {
-          console.log("[export] Building export bundle…");
+          console.log("[export] Building IIFE export bundle…");
           const result = await viteBuild({
             configFile: false,
             root: path.resolve(__dirname),
@@ -25,8 +25,9 @@ function exportBuildPlugin(): Plugin {
             build: {
               write: false,
               rollupOptions: {
-                input: path.resolve(__dirname, "export.html"),
+                input: path.resolve(__dirname, "src/export-entry.tsx"),
                 output: {
+                  format: "iife",
                   inlineDynamicImports: true,
                 },
               },
@@ -40,37 +41,41 @@ function exportBuildPlugin(): Plugin {
           const output = Array.isArray(result) ? result[0] : result;
           if (!("output" in output)) throw new Error("Unexpected build result");
 
-          let htmlSource = "";
-          const jsChunks: string[] = [];
+          let jsCode = "";
           const cssChunks: string[] = [];
 
           for (const item of output.output) {
-            if (item.type === "asset" && item.fileName.endsWith(".html")) {
-              htmlSource = typeof item.source === "string" ? item.source : new TextDecoder().decode(item.source as Uint8Array);
-            } else if (item.type === "chunk") {
-              jsChunks.push(item.code);
+            if (item.type === "chunk") {
+              jsCode += item.code;
             } else if (item.type === "asset" && item.fileName.endsWith(".css")) {
               const cssSource = typeof item.source === "string" ? item.source : new TextDecoder().decode(item.source as Uint8Array);
               cssChunks.push(cssSource);
             }
           }
 
-          // Remove external references and inline everything
-          htmlSource = htmlSource.replace(/<link[^>]*rel=["']stylesheet["'][^>]*>/gi, "");
-          htmlSource = htmlSource.replace(/<script[^>]*src=["'][^"']*["'][^>]*><\/script>/gi, "");
-          htmlSource = htmlSource.replace(
-            "</head>",
-            `<style>\n${cssChunks.join("\n")}\n</style>\n</head>`
-          );
-          htmlSource = htmlSource.replace(
-            "</body>",
-            `<script>\n${jsChunks.join("\n")}\n</script>\n</body>`
-          );
+          // Escape </script> inside JS to prevent HTML parser breakage
+          const safeJs = jsCode.replace(/<\/script>/gi, "<\\/script>");
 
-          // Remove any platform-injected badge
-          htmlSource = htmlSource.replace(/<aside[^>]*id=["']lovable-badge["'][^]*?<\/aside>/gi, "");
+          const htmlSource = `<!doctype html>
+<html lang="de" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TOM Export</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet" />
+  <style>
+${cssChunks.join("\n")}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>${safeJs}</script>
+</body>
+</html>`;
 
-          console.log("[export] Build complete, sending as JSON…");
+          console.log("[export] Build complete (" + Math.round(htmlSource.length / 1024) + " KB), sending as JSON…");
           const base64 = Buffer.from(htmlSource).toString("base64");
           res.setHeader("Content-Type", "application/json");
           res.end(JSON.stringify({ html: base64 }));
