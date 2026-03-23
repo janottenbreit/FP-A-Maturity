@@ -50,8 +50,8 @@ function exportBuildPlugin(): Plugin {
             } else if (item.type === "chunk") {
               jsChunks.push(item.code);
             } else if (item.type === "asset" && item.fileName.endsWith(".css")) {
-              htmlSource = typeof item.source === "string" ? item.source : new TextDecoder().decode(item.source as Uint8Array);
-              cssChunks.push(htmlSource);
+              const cssSource = typeof item.source === "string" ? item.source : new TextDecoder().decode(item.source as Uint8Array);
+              cssChunks.push(cssSource);
             }
           }
 
