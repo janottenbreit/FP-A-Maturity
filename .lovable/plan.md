@@ -1,129 +1,76 @@
 
 
-## Interaktiver HTML-Export — Vollstaendige React-App als Single-File
+## Fix: Interaktiver HTML-Export — Weisser Bildschirm
 
-### Problem
+### Ursache
 
-Der aktuelle Export extrahiert nur statisches HTML — keine Event-Handler, kein React-State, keine Interaktivitaet. Hover-Effekte, Klick-Dialoge und Accordions funktionieren nicht.
+Der Export ist kaputt, weil Vite im Dev-Modus **einzelne ESM-Module** ueber HTTP ausliefert (z.B. `/src/main.tsx`, `/src/App.tsx`, `/node_modules/.vite/deps/react.js`). Wenn man das Entry-Script inline in eine HTML-Datei packt, enthaelt es `import`-Statements die auf den Server zeigen — beim Oeffnen als lokale Datei gibt es keinen Server → alle Imports schlagen fehl → weisser Bildschirm.
 
-### Neuer Ansatz
+### Loesung: Rekursives Module-Crawling
 
-Statt HTML-Snapshots zu extrahieren, wird die gesamte React-App zur Laufzeit als self-contained HTML-Datei gebaut. Der Trick: Vite's Build-Output (JS-Bundle + CSS) wird in eine einzige HTML-Datei inlined.
+Der ExportButton muss **alle Module rekursiv vom Vite Dev Server fetchen** und sie als self-contained Script in die HTML-Datei einbetten. Der Vite Dev Server transformiert bereits TSX → JS — wir muessen nur die gesamte Import-Kette verfolgen und alles zusammenfuehren.
 
-**Ablauf beim Klick auf "Export":**
+### Konkreter Ansatz
 
-1. Fetch der gebauten App-Assets vom Server: `/assets/*.js` und `/assets/*.css` (die Vite-Build-Artefakte, die bereits im Preview laufen)
-2. CSS und JS inline in ein HTML-Template einbetten
-3. Eine spezielle Export-Version der App rendern (ohne AppNav-Export-Button, mit eigenem Tab-Switching)
-4. Als `.html`-Blob herunterladen
+#### `src/components/ExportButton.tsx` — komplett neu
 
-### Umsetzung
+**Schritt 1: Rekursiver Module-Crawler**
 
-#### 1. `src/components/ExportApp.tsx` (neu)
+Eine Funktion `crawlModules(entryUrl)` die:
+1. Den Entry-Point `/src/main.tsx` vom Dev Server fetcht (Vite liefert transformiertes JS)
+2. Alle `import`-Statements per Regex parst (sowohl statische als auch dynamische)
+3. Jeden importierten Pfad aufloest (relativ → absolut, `@/` → `/src/`)
+4. Rekursiv alle Abhaengigkeiten fetcht (lokale `/src/` Module UND npm-Module aus `/node_modules/.vite/deps/`)
+5. Einen Dependency-Graph aufbaut (Map von URL → transformiertem JS-Code)
 
-Minimale App-Variante fuer den Export — ohne Router, ohne Export-Button:
-- Eigener State fuer aktiven Tab (`pyramid` / `maturity`)
-- Tab-Navigation im gleichen Glassmorphism-Stil
-- Rendert `TOMPyramid` oder `MaturityHeatmap` je nach Tab
-- Kein `BrowserRouter`, kein `QueryClientProvider` (nicht noetig)
+**Schritt 2: Module zu Blob-URLs konvertieren**
 
-#### 2. `src/export-entry.tsx` (neu)
+Da inline `<script type="module">` keine relativen Imports aufloesen kann:
+1. Bottom-up durch den Dependency-Graph gehen (Blaetter zuerst)
+2. Jedes Modul als `Blob` → `URL.createObjectURL` registrieren
+3. Im Parent-Modul die Import-Pfade durch die Blob-URLs ersetzen
+4. Resultat: Ein Entry-Modul dessen gesamte Import-Kette auf Blob-URLs zeigt
 
-Separater Vite Entry-Point fuer den Export-Build:
-- Importiert `ExportApp` + `index.css`
-- Rendert in `#root`
+**Problem:** Blob-URLs funktionieren nicht in einer gespeicherten HTML-Datei (sie sind session-gebunden).
 
-#### 3. `vite.config.export.ts` (neu)
+### Besserer Ansatz: Data-URI Module
 
-Separate Vite-Config fuer den Export-Build:
-- `build.rollupOptions.input`: zeigt auf eine `export.html` die `export-entry.tsx` laedt
-- `build.cssCodeSplit: false` — alles in eine CSS-Datei
-- `build.rollupOptions.output.manualChunks: undefined` — alles in ein JS-Bundle
+Statt Blob-URLs werden Module als `data:text/javascript;base64,...` URIs eingebettet:
+1. Gleicher rekursiver Crawl
+2. Alle Imports werden bottom-up durch Data-URIs ersetzt
+3. Das Entry-Modul wird als einzelnes `<script type="module">` mit rewrittenen Imports eingebettet
 
-#### 4. `ExportButton.tsx` ueberarbeiten
+**Problem:** Manche Browser blockieren `import` von Data-URIs aus Sicherheitsgruenden.
 
-Neuer Ansatz — statt offscreen-Rendering:
-1. Fetcht die aktuelle Seite (`/`) und extrahiert die `<script>` und `<link>` Tags
-2. Fetcht alle referenzierten JS/CSS-Assets
-3. Baut eine HTML-Datei mit inline `<script>` und `<style>` Tags
-4. Ersetzt den Entry-Point so, dass `ExportApp` statt `App` gerendert wird
+### Pragmatischster Ansatz (empfohlen): Single IIFE Bundle
 
-**Alternativ (einfacher):** Da wir keinen separaten Build-Schritt im Browser ausfuehren koennen, nutzen wir einen pragmatischeren Ansatz:
+Statt das ESM-Format beizubehalten, konvertieren wir alle Module in ein **einziges IIFE-Script**:
 
-### Pragmatischer Ansatz (empfohlen)
+1. **Crawl** alle Module rekursiv vom Vite Dev Server
+2. **Registriere** jedes Modul in einem internen Module-System:
+   ```
+   const __modules = {};
+   function __define(id, factory) { ... }
+   function __require(id) { ... }
+   ```
+3. **Konvertiere** jedes ESM-Modul:
+   - `import X from "Y"` → `const X = __require("Y")`
+   - `export default Z` → `__modules[id].default = Z`
+   - `export { A, B }` → `__modules[id].A = A; ...`
+4. **Verpacke** alles in ein `<script>` (kein `type="module"` noetig)
 
-Die aktuelle Preview-URL IST bereits die lauffaehige App. Der Export sammelt alle Assets der laufenden App und packt sie in eine einzelne HTML-Datei:
+#### Dateien
 
-1. **Fetch `index.html`** von der aktuellen Origin
-2. **Fetch alle `<script>` und `<link rel="stylesheet">` Assets** (die Vite-Build-Artefakte)
-3. **Inline alles** in eine einzige HTML-Datei: CSS in `<style>`, JS in `<script>`
-4. **Patch den JS-Code**: Ersetze den Router-basierten Ansatz durch eine Export-Variante (oder: lasse den Router drin, er funktioniert auch ohne Server via HashRouter)
-5. **Download** als `.html`
-
-#### Problem: BrowserRouter funktioniert nicht als lokale Datei
-
-**Loesung:** Eine Export-spezifische App-Komponente (`ExportApp.tsx`) die ohne Router arbeitet und stattdessen einen simplen useState-Tab-Switcher nutzt. Der Export inlined diese Variante.
-
-### Konkrete Dateiaenderungen
-
-#### `src/components/ExportApp.tsx` (neu)
-- Standalone App-Shell ohne Router
-- useState-Tab-Navigation zwischen TOM Pyramide und FP&A Reifegrad
-- Rendert `TooltipProvider` + die jeweilige Komponente
-- Kein Export-Button sichtbar
-
-#### `src/export-entry.tsx` (neu)  
-- `createRoot(document.getElementById("root")!).render(<ExportApp />)`
-- Importiert `index.css`
-
-#### `export.html` (neu, im Root)
-- Kopie von `index.html` mit `src="/src/export-entry.tsx"` statt `main.tsx`
-
-#### `vite.config.ts` anpassen
-- Neues npm-Script `build:export` das mit `--config vite.config.export.ts` baut
-- Export-Config: Single-File Output (kein Code-Splitting)
-
-#### `ExportButton.tsx` ueberarbeiten
-- Bei Klick: Fuehrt `fetch('/export-bundle.html')` aus (oder baut es client-seitig)
-- Da wir keinen Build-Step im Browser haben, Alternative:
-
-### Finaler, realistischer Ansatz
-
-Da wir im Browser keinen Vite-Build ausfuehren koennen, ist der pragmatischste Weg:
-
-1. **ExportButton fetcht alle laufenden Assets** der aktuellen App
-2. **Baut eine HTML-Datei** mit allen JS/CSS inline
-3. **Patcht den Entry-Point** im inlined JS: statt `App` wird `ExportApp` gerendert (die ohne Router arbeitet)
-
-Konkret:
-
-#### `ExportButton.tsx` — komplett neu
-
-```
-async handleExport():
-  1. const indexHTML = await fetch(location.origin).then(r => r.text())
-  2. Parse alle <script src="..."> und <link href="..."> URLs
-  3. Fetch jeden Asset-Inhalt
-  4. Baue finales HTML:
-     - Ersetze <link> mit <style>INHALT</style>
-     - Ersetze <script src> mit <script>INHALT</script>  
-     - Ersetze im JS: '/src/main.tsx' Referenz → rendere ExportApp
-  5. Download als Blob
-```
-
-#### `src/components/ExportApp.tsx` (neu)
-
-Standalone App ohne Router, mit Tab-State. Wird als globale Funktion registriert (`window.__renderExportApp`) die der gepatchte Entry-Point aufruft.
-
-### Einschraenkung
-
-Dieser Ansatz funktioniert nur in der **Development-/Preview-Umgebung** wo die Assets ueber HTTP erreichbar sind. Fuer eine Published-App muesste der Build-Schritt serverseitig laufen.
-
-### Dateien
-
-| Datei | Aktion |
+| Datei | Aenderung |
 |---|---|
-| `src/components/ExportApp.tsx` | Neu — Router-freie App-Shell |
-| `src/components/ExportButton.tsx` | Ueberarbeiten — Asset-Inlining statt HTML-Snapshot |
-| `src/main.tsx` | Kleine Anpassung — Export-App als Alternative registrieren |
+| `src/components/ExportButton.tsx` | Komplett neu — rekursiver Module-Crawler + IIFE-Bundler |
+| `src/components/ExportApp.tsx` | Keine Aenderung (bereits korrekt) |
+| `src/main.tsx` | Keine Aenderung (Export-Mode-Check bereits vorhanden) |
+
+#### Einschraenkungen
+
+- Der Crawl kann 5-15 Sekunden dauern (viele Module zu fetchen)
+- Loading-Indikator mit Fortschritt (z.B. "Lade Module... 42/128")
+- Funktioniert nur in der Lovable Preview-Umgebung (Vite Dev Server muss laufen)
+- Exportierte Datei wird ~2-5 MB gross (gesamte React + Radix + App-Code)
 
