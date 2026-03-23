@@ -9,7 +9,8 @@ export default function ExportButton() {
     try {
       const res = await fetch("/__export");
       if (!res.ok) throw new Error(`Export failed: ${res.status}`);
-      const html = await res.text();
+      const { html: base64 } = await res.json();
+      const html = atob(base64);
 
       const blob = new Blob([html], { type: "text/html;charset=utf-8" });
       const url = URL.createObjectURL(blob);
