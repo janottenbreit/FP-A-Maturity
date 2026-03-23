@@ -45,13 +45,13 @@ function exportBuildPlugin(): Plugin {
           const cssChunks: string[] = [];
 
           for (const item of output.output) {
-            if (item.fileName.endsWith(".html")) {
+            if (item.type === "asset" && item.fileName.endsWith(".html")) {
               htmlSource = typeof item.source === "string" ? item.source : new TextDecoder().decode(item.source as Uint8Array);
             } else if (item.type === "chunk") {
               jsChunks.push(item.code);
-            } else if (item.fileName.endsWith(".css")) {
-              const src = typeof item.source === "string" ? item.source : new TextDecoder().decode(item.source as Uint8Array);
-              cssChunks.push(src);
+            } else if (item.type === "asset" && item.fileName.endsWith(".css")) {
+              htmlSource = typeof item.source === "string" ? item.source : new TextDecoder().decode(item.source as Uint8Array);
+              cssChunks.push(htmlSource);
             }
           }
 
