@@ -1,54 +1,129 @@
 
 
-## HTML-Export — Beide Seiten als selbststaendige HTML-Datei
+## Interaktiver HTML-Export — Vollstaendige React-App als Single-File
 
-### Ansatz
+### Problem
 
-Ein Export-Button oben rechts in der Navigation, der den gesamten aktuellen DOM-Inhalt (beide Seiten) als eine selbststaendige HTML-Datei herunterlaed. Die Datei enthaelt alle Styles inline und ist ohne Server lauffaehig.
+Der aktuelle Export extrahiert nur statisches HTML — keine Event-Handler, kein React-State, keine Interaktivitaet. Hover-Effekte, Klick-Dialoge und Accordions funktionieren nicht.
+
+### Neuer Ansatz
+
+Statt HTML-Snapshots zu extrahieren, wird die gesamte React-App zur Laufzeit als self-contained HTML-Datei gebaut. Der Trick: Vite's Build-Output (JS-Bundle + CSS) wird in eine einzige HTML-Datei inlined.
+
+**Ablauf beim Klick auf "Export":**
+
+1. Fetch der gebauten App-Assets vom Server: `/assets/*.js` und `/assets/*.css` (die Vite-Build-Artefakte, die bereits im Preview laufen)
+2. CSS und JS inline in ein HTML-Template einbetten
+3. Eine spezielle Export-Version der App rendern (ohne AppNav-Export-Button, mit eigenem Tab-Switching)
+4. Als `.html`-Blob herunterladen
 
 ### Umsetzung
 
-#### 1. Neue Komponente `src/components/ExportButton.tsx`
+#### 1. `src/components/ExportApp.tsx` (neu)
 
-- Button mit Download-Icon, positioniert rechts in der AppNav-Leiste
-- Bei Klick:
-  1. Klont das `document.documentElement` 
-  2. Sammelt alle computed Styles aus den `<style>`-Tags und Stylesheets
-  3. Inlinet alle CSS in ein `<style>`-Tag im `<head>`
-  4. Entfernt den Export-Button und die Navigation aus dem Klon
-  5. Fuegt eine einfache Tab-Navigation (reines HTML/JS) hinzu, die zwischen den beiden Seiten wechselt
-  6. Erzeugt einen Blob und triggert den Download als `.html`-Datei
+Minimale App-Variante fuer den Export — ohne Router, ohne Export-Button:
+- Eigener State fuer aktiven Tab (`pyramid` / `maturity`)
+- Tab-Navigation im gleichen Glassmorphism-Stil
+- Rendert `TOMPyramid` oder `MaturityHeatmap` je nach Tab
+- Kein `BrowserRouter`, kein `QueryClientProvider` (nicht noetig)
 
-**Herausforderung:** Beide Seiten muessen im exportierten HTML vorhanden sein, obwohl React-Router immer nur eine rendert.
+#### 2. `src/export-entry.tsx` (neu)
 
-**Loesung:** Der Export rendert beide Komponenten (`TOMPyramid` + `MaturityHeatmap`) temporaer in ein unsichtbares Container-Element, extrahiert deren HTML, und baut daraus eine statische HTML-Datei mit eigenem Tab-Switching (vanilla JS).
+Separater Vite Entry-Point fuer den Export-Build:
+- Importiert `ExportApp` + `index.css`
+- Rendert in `#root`
 
-#### 2. Export-Logik (Kernschritte)
+#### 3. `vite.config.export.ts` (neu)
 
-1. Beide Komponenten in ein offscreen-`div` rendern (via `createRoot`)
-2. Gesamtes CSS aus dem Dokument einsammeln (Tailwind, Custom Styles, Google Fonts)
-3. HTML-Template bauen:
-   - `<head>`: Google Fonts Link + gesammelte Styles
-   - `<body>`: Tab-Navigation + Container fuer beide Seiten + vanilla JS Tab-Switcher
-4. Als `Blob` → `URL.createObjectURL` → automatischer Download
+Separate Vite-Config fuer den Export-Build:
+- `build.rollupOptions.input`: zeigt auf eine `export.html` die `export-entry.tsx` laedt
+- `build.cssCodeSplit: false` — alles in eine CSS-Datei
+- `build.rollupOptions.output.manualChunks: undefined` — alles in ein JS-Bundle
 
-#### 3. `src/components/AppNav.tsx` anpassen
+#### 4. `ExportButton.tsx` ueberarbeiten
 
-- ExportButton rechts neben der Tab-Navigation platzieren
-- Layout: `justify-between` statt `justify-center`, mit leerem Spacer links fuer Zentrierung
+Neuer Ansatz — statt offscreen-Rendering:
+1. Fetcht die aktuelle Seite (`/`) und extrahiert die `<script>` und `<link>` Tags
+2. Fetcht alle referenzierten JS/CSS-Assets
+3. Baut eine HTML-Datei mit inline `<script>` und `<style>` Tags
+4. Ersetzt den Entry-Point so, dass `ExportApp` statt `App` gerendert wird
 
-#### 4. Einschraenkungen
+**Alternativ (einfacher):** Da wir keinen separaten Build-Schritt im Browser ausfuehren koennen, nutzen wir einen pragmatischeren Ansatz:
 
-- Interaktive Features (Klick auf Zellen, Modal-Dialoge) funktionieren im Export **nicht** — es ist ein statischer Snapshot
-- Alternativ: Der Export koennte die gesamte App als self-contained SPA exportieren, aber das waere extrem komplex
+### Pragmatischer Ansatz (empfohlen)
 
-### Offene Frage
+Die aktuelle Preview-URL IST bereits die lauffaehige App. Der Export sammelt alle Assets der laufenden App und packt sie in eine einzelne HTML-Datei:
 
-Die interaktiven Features (Heatmap-Klick, Pyramiden-Modal) gehen bei einem statischen HTML-Export verloren. Zwei Optionen:
+1. **Fetch `index.html`** von der aktuellen Origin
+2. **Fetch alle `<script>` und `<link rel="stylesheet">` Assets** (die Vite-Build-Artefakte)
+3. **Inline alles** in eine einzige HTML-Datei: CSS in `<style>`, JS in `<script>`
+4. **Patch den JS-Code**: Ersetze den Router-basierten Ansatz durch eine Export-Variante (oder: lasse den Router drin, er funktioniert auch ohne Server via HashRouter)
+5. **Download** als `.html`
 
-**Option A — Statischer Snapshot:** Schnell umsetzbar, zeigt beide Seiten als Read-Only-Ansicht. Kein JavaScript noetig ausser Tab-Switching.
+#### Problem: BrowserRouter funktioniert nicht als lokale Datei
 
-**Option B — Vollstaendige Kopie:** Exportiert den gesamten gebauten App-Code (JS-Bundle + CSS + HTML) als ZIP. Vollstaendig interaktiv, aber groesser (~500KB+) und komplexer.
+**Loesung:** Eine Export-spezifische App-Komponente (`ExportApp.tsx`) die ohne Router arbeitet und stattdessen einen simplen useState-Tab-Switcher nutzt. Der Export inlined diese Variante.
 
-Ich empfehle **Option A** fuer den ersten Wurf — clean, leichtgewichtig, teilbar.
+### Konkrete Dateiaenderungen
+
+#### `src/components/ExportApp.tsx` (neu)
+- Standalone App-Shell ohne Router
+- useState-Tab-Navigation zwischen TOM Pyramide und FP&A Reifegrad
+- Rendert `TooltipProvider` + die jeweilige Komponente
+- Kein Export-Button sichtbar
+
+#### `src/export-entry.tsx` (neu)  
+- `createRoot(document.getElementById("root")!).render(<ExportApp />)`
+- Importiert `index.css`
+
+#### `export.html` (neu, im Root)
+- Kopie von `index.html` mit `src="/src/export-entry.tsx"` statt `main.tsx`
+
+#### `vite.config.ts` anpassen
+- Neues npm-Script `build:export` das mit `--config vite.config.export.ts` baut
+- Export-Config: Single-File Output (kein Code-Splitting)
+
+#### `ExportButton.tsx` ueberarbeiten
+- Bei Klick: Fuehrt `fetch('/export-bundle.html')` aus (oder baut es client-seitig)
+- Da wir keinen Build-Step im Browser haben, Alternative:
+
+### Finaler, realistischer Ansatz
+
+Da wir im Browser keinen Vite-Build ausfuehren koennen, ist der pragmatischste Weg:
+
+1. **ExportButton fetcht alle laufenden Assets** der aktuellen App
+2. **Baut eine HTML-Datei** mit allen JS/CSS inline
+3. **Patcht den Entry-Point** im inlined JS: statt `App` wird `ExportApp` gerendert (die ohne Router arbeitet)
+
+Konkret:
+
+#### `ExportButton.tsx` — komplett neu
+
+```
+async handleExport():
+  1. const indexHTML = await fetch(location.origin).then(r => r.text())
+  2. Parse alle <script src="..."> und <link href="..."> URLs
+  3. Fetch jeden Asset-Inhalt
+  4. Baue finales HTML:
+     - Ersetze <link> mit <style>INHALT</style>
+     - Ersetze <script src> mit <script>INHALT</script>  
+     - Ersetze im JS: '/src/main.tsx' Referenz → rendere ExportApp
+  5. Download als Blob
+```
+
+#### `src/components/ExportApp.tsx` (neu)
+
+Standalone App ohne Router, mit Tab-State. Wird als globale Funktion registriert (`window.__renderExportApp`) die der gepatchte Entry-Point aufruft.
+
+### Einschraenkung
+
+Dieser Ansatz funktioniert nur in der **Development-/Preview-Umgebung** wo die Assets ueber HTTP erreichbar sind. Fuer eine Published-App muesste der Build-Schritt serverseitig laufen.
+
+### Dateien
+
+| Datei | Aktion |
+|---|---|
+| `src/components/ExportApp.tsx` | Neu — Router-freie App-Shell |
+| `src/components/ExportButton.tsx` | Ueberarbeiten — Asset-Inlining statt HTML-Snapshot |
+| `src/main.tsx` | Kleine Anpassung — Export-App als Alternative registrieren |
 
