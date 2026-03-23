@@ -67,9 +67,13 @@ function exportBuildPlugin(): Plugin {
             `<script>\n${jsChunks.join("\n")}\n</script>\n</body>`
           );
 
-          console.log("[export] Build complete, sending HTML…");
-          res.setHeader("Content-Type", "text/html; charset=utf-8");
-          res.end(htmlSource);
+          // Remove any platform-injected badge
+          htmlSource = htmlSource.replace(/<aside[^>]*id=["']lovable-badge["'][^]*?<\/aside>/gi, "");
+
+          console.log("[export] Build complete, sending as JSON…");
+          const base64 = Buffer.from(htmlSource).toString("base64");
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({ html: base64 }));
         } catch (err) {
           console.error("[export] Build failed:", err);
           res.statusCode = 500;
