@@ -1,142 +1,82 @@
 import { Download, Loader2 } from "lucide-react";
 import { useState, useCallback } from "react";
-import { createRoot } from "react-dom/client";
-import TOMPyramid from "./TOMPyramid";
-import MaturityHeatmap from "./MaturityHeatmap";
 
-function collectStyles(): string {
-  const styles: string[] = [];
-  for (const sheet of Array.from(document.styleSheets)) {
+async function fetchAndInlineAssets(): Promise<string> {
+  // 1. Fetch the current page HTML
+  const indexHTML = await fetch(location.origin + "/").then((r) => r.text());
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(indexHTML, "text/html");
+
+  // 2. Collect all CSS <link> tags and inline them
+  const linkEls = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+  for (const link of linkEls) {
+    const href = link.getAttribute("href");
+    if (!href) continue;
     try {
-      for (const rule of Array.from(sheet.cssRules)) {
-        styles.push(rule.cssText);
-      }
+      const cssUrl = new URL(href, location.origin).href;
+      const cssText = await fetch(cssUrl).then((r) => r.text());
+      const style = doc.createElement("style");
+      style.textContent = cssText;
+      link.replaceWith(style);
     } catch {
-      // cross-origin stylesheet — skip
+      // skip unreachable stylesheets
     }
   }
-  return styles.join("\n");
+
+  // 3. Collect all <script> tags and inline them
+  const scriptEls = Array.from(doc.querySelectorAll("script[src]"));
+  for (const script of scriptEls) {
+    const src = script.getAttribute("src");
+    if (!src) continue;
+    try {
+      const jsUrl = new URL(src, location.origin).href;
+      let jsText = await fetch(jsUrl).then((r) => r.text());
+
+      // 4. Patch: replace main entry to render ExportApp instead of App
+      // The main.tsx compiled code imports App and renders it.
+      // We need to swap it to render ExportApp instead.
+      // Since ExportApp is already bundled (imported in main.tsx), we just
+      // need the entry point to call the export variant.
+      jsText = patchEntryPoint(jsText);
+
+      const inlineScript = doc.createElement("script");
+      inlineScript.setAttribute("type", script.getAttribute("type") || "text/javascript");
+      inlineScript.textContent = jsText;
+      script.replaceWith(inlineScript);
+    } catch {
+      // skip unreachable scripts
+    }
+  }
+
+  // 5. Remove any module preload links
+  const preloads = Array.from(doc.querySelectorAll('link[rel="modulepreload"]'));
+  preloads.forEach((el) => el.remove());
+
+  // 6. Update title
+  const titleEl = doc.querySelector("title");
+  if (titleEl) {
+    titleEl.textContent = "TOM & FP&A Reifegrad — Export";
+  }
+
+  return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
 }
 
-function renderComponentToHTML(
-  Component: React.ComponentType,
-): Promise<string> {
-  return new Promise((resolve) => {
-    const container = document.createElement("div");
-    container.style.position = "absolute";
-    container.style.left = "-9999px";
-    container.style.top = "0";
-    container.style.width = "1200px";
-    document.body.appendChild(container);
+function patchEntryPoint(jsCode: string): string {
+  // The compiled main.tsx renders <App /> into #root.
+  // We patch it to render <ExportApp /> instead.
+  // In the Vite dev server, the code is raw ESM with imports.
+  // We need to handle both dev (import statements) and prod (bundled) modes.
 
-    const root = createRoot(container);
-    root.render(<Component />);
+  // Dev mode: the main.tsx module has `import App from "./App.tsx"` 
+  // and renders it. We replace the import to point to ExportApp.
+  // But in dev mode, each module is a separate request — main.tsx is tiny.
+  // The actual patching needs to happen at the module level.
 
-    // Give React time to render
-    setTimeout(() => {
-      const html = container.innerHTML;
-      root.unmount();
-      document.body.removeChild(container);
-      resolve(html);
-    }, 500);
-  });
-}
+  // Since in dev mode modules are loaded individually via ESM imports,
+  // we can't easily patch. Instead, we use a different strategy:
+  // Register ExportApp on window in main.tsx, and check for an export flag.
 
-function buildExportHTML(pyramidHTML: string, heatmapHTML: string, css: string): string {
-  return `<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TOM & FP&A Reifegrad — Export</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-${css}
-
-/* Export tab navigation */
-.export-nav {
-  display: flex;
-  justify-content: center;
-  gap: 4px;
-  padding: 20px 16px 8px;
-}
-.export-nav-inner {
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 9999px;
-  background: hsla(210, 22%, 11%, 0.8);
-  backdrop-filter: blur(24px);
-  border: 1px solid hsla(210, 20%, 16%, 0.5);
-}
-.export-tab-btn {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  padding: 8px 16px;
-  border-radius: 9999px;
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: all 0.2s;
-  background: transparent;
-  color: hsla(210, 15%, 52%, 1);
-}
-.export-tab-btn:hover {
-  color: hsl(195, 40%, 93%);
-}
-.export-tab-btn.active {
-  background: hsla(190, 45%, 58%, 0.15);
-  color: hsl(190, 45%, 58%);
-  border-color: hsla(190, 45%, 58%, 0.3);
-}
-.export-section { display: none; }
-.export-section.active { display: block; }
-
-.export-footer {
-  text-align: center;
-  padding: 24px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: hsla(210, 15%, 52%, 0.5);
-  letter-spacing: 0.1em;
-}
-</style>
-</head>
-<body style="margin:0; background: hsl(210, 25%, 8%); color: hsl(195, 40%, 93%);">
-
-<nav class="export-nav">
-  <div class="export-nav-inner">
-    <button class="export-tab-btn active" onclick="switchTab('pyramid')">TOM Pyramide</button>
-    <button class="export-tab-btn" onclick="switchTab('maturity')">FP&A Reifegrad</button>
-  </div>
-</nav>
-
-<div id="section-pyramid" class="export-section active">
-${pyramidHTML}
-</div>
-
-<div id="section-maturity" class="export-section">
-${heatmapHTML}
-</div>
-
-<div class="export-footer">
-  Exportiert am ${new Date().toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" })}
-</div>
-
-<script>
-function switchTab(tab) {
-  document.querySelectorAll('.export-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.export-tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('section-' + tab).classList.add('active');
-  const btns = document.querySelectorAll('.export-tab-btn');
-  if (tab === 'pyramid') btns[0].classList.add('active');
-  else btns[1].classList.add('active');
-}
-</script>
-</body>
-</html>`;
+  return jsCode;
 }
 
 export default function ExportButton() {
@@ -145,16 +85,12 @@ export default function ExportButton() {
   const handleExport = useCallback(async () => {
     setLoading(true);
     try {
-      const css = collectStyles();
-      const [pyramidHTML, heatmapHTML] = await Promise.all([
-        renderComponentToHTML(TOMPyramid),
-        renderComponentToHTML(MaturityHeatmap),
-      ]);
-
-      const html = buildExportHTML(pyramidHTML, heatmapHTML, css);
+      // Set the export flag before fetching
+      // The fetched page will pick this up from a meta tag we inject
+      const html = await buildExportHTML();
+      
       const blob = new Blob([html], { type: "text/html;charset=utf-8" });
       const url = URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = url;
       a.download = `TOM-Export-${new Date().toISOString().slice(0, 10)}.html`;
@@ -177,4 +113,53 @@ export default function ExportButton() {
       {loading ? "Export…" : "Export"}
     </button>
   );
+}
+
+async function buildExportHTML(): Promise<string> {
+  // Fetch the index page
+  const indexHTML = await fetch(location.origin + "/").then((r) => r.text());
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(indexHTML, "text/html");
+
+  // Inline all CSS
+  const linkEls = Array.from(doc.querySelectorAll('link[rel="stylesheet"]'));
+  for (const link of linkEls) {
+    const href = link.getAttribute("href");
+    if (!href) continue;
+    try {
+      const cssText = await fetch(new URL(href, location.origin).href).then((r) => r.text());
+      const style = doc.createElement("style");
+      style.textContent = cssText;
+      link.replaceWith(style);
+    } catch { /* skip */ }
+  }
+
+  // Inline all scripts and patch
+  const scriptEls = Array.from(doc.querySelectorAll("script[src]"));
+  for (const script of scriptEls) {
+    const src = script.getAttribute("src");
+    if (!src) continue;
+    try {
+      let jsText = await fetch(new URL(src, location.origin).href).then((r) => r.text());
+      const inlineScript = doc.createElement("script");
+      inlineScript.setAttribute("type", script.getAttribute("type") || "text/javascript");
+      inlineScript.textContent = jsText;
+      script.replaceWith(inlineScript);
+    } catch { /* skip */ }
+  }
+
+  // Remove modulepreload links
+  doc.querySelectorAll('link[rel="modulepreload"]').forEach((el) => el.remove());
+
+  // Add export flag meta tag — main.tsx checks for this
+  const meta = doc.createElement("meta");
+  meta.setAttribute("name", "x-export-mode");
+  meta.setAttribute("content", "true");
+  doc.head.prepend(meta);
+
+  // Update title
+  const titleEl = doc.querySelector("title");
+  if (titleEl) titleEl.textContent = "TOM & FP&A Reifegrad — Export";
+
+  return `<!DOCTYPE html>\n${doc.documentElement.outerHTML}`;
 }
