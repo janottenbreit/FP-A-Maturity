@@ -1,65 +1,65 @@
 
 
-## Fix: HTML-Export — Weisser Bildschirm
+## Fix: Export-Button tut nichts — Middleware laeuft nicht
 
 ### Ursache
 
-Die exportierte Datei enthaelt immer noch **externe Asset-Referenzen** statt inlintem Code:
+Die Lovable Preview laeuft als **Production Build**, nicht als Vite Dev Server. Die `configureServer`-Middleware in `vite.config.ts` wird nur bei `vite dev` ausgefuehrt — in der Preview existiert der `/__export`-Endpoint nicht. Die Plattform liefert stattdessen die normale `index.html` zurueck (SPA-Fallback), daher der JSON-Parse-Fehler.
 
-```html
-<script type="module" crossorigin src="/assets/index-IiIMmMk1.js"></script>
-<link rel="stylesheet" crossorigin href="/assets/index-CNKqfShw.css">
+### Loesung: Rein clientseitiger Export
+
+Statt serverseitigem Build werden die **bereits geladenen Assets** der laufenden App direkt im Browser eingesammelt und in eine HTML-Datei gepackt.
+
+### Ablauf
+
+1. Aktuelles Dokument parsen: `<script src>` und `<link rel="stylesheet" href>` Tags finden
+2. Alle referenzierten JS/CSS-Dateien per `fetch()` herunterladen
+3. HTML-Template bauen mit allem inline (`<style>` + `<script>`)
+4. Eine `<meta name="x-export-mode">` einfuegen, damit `main.tsx` die Export-Variante rendert
+5. Lovable-Badge und externe Platform-Scripts entfernen
+6. Als `.html`-Datei herunterladen
+
+### Dateiaenderungen
+
+#### 1. `src/main.tsx`
+- ExportApp importieren
+- Pruefen ob `<meta name="x-export-mode">` vorhanden ist
+- Wenn ja: ExportApp rendern, sonst: App rendern
+
+#### 2. `src/components/ExportButton.tsx` — komplett neu (clientseitig)
+- Kein `fetch("/__export")` mehr
+- Stattdessen: DOM parsen, Assets fetchen, HTML zusammenbauen
+- Badge-HTML, Platform-Scripts (`lovable.js`, `gpteng.co`) entfernen
+- Export-Mode Meta-Tag einfuegen
+- Download als Blob
+
+#### 3. `vite.config.ts`
+- `exportBuildPlugin()` entfernen (funktioniert nicht in Production)
+- `import { build as viteBuild }` entfernen
+- Aufgeraeumt und einfacher
+
+#### 4. Aufraeum-Dateien (optional)
+- `export.html` und `src/export-entry.tsx` werden nicht mehr benoetigt (koennen bleiben, schaden nicht)
+
+### Technischer Ablauf im ExportButton
+
+```text
+1. scripts = document.querySelectorAll('script[src]')
+2. styles  = document.querySelectorAll('link[rel="stylesheet"]')
+3. Fuer jedes Asset: fetch(src) → text
+4. HTML bauen:
+   <!doctype html>
+   <html lang="de" class="dark">
+   <head>
+     <meta name="x-export-mode" content="true">
+     Google Fonts Links
+     <style>...alle CSS inline...</style>
+   </head>
+   <body>
+     <div id="root"></div>
+     <script>...alle JS inline...</script>
+   </body>
+   </html>
+5. Blob → Download
 ```
-
-Zwei Probleme:
-
-1. **Lovable-Plattform injiziert Badge/OG-Tags** in die HTML-Antwort von `/__export` und ueberschreibt moeglicherweise den inlinten Inhalt
-2. Der Export-Build produziert die korrekten Chunks, aber die Plattform-Transformation fuegt die externen Referenzen wieder ein
-
-### Loesung
-
-Den Export-Inhalt **nicht als HTML** zurueckgeben, sondern als **Base64-encodierten JSON-Payload**. So kann die Plattform den Inhalt nicht als HTML interpretieren und transformieren.
-
-### Aenderungen
-
-#### 1. `vite.config.ts` — Middleware anpassen
-
-- Content-Type auf `application/json` aendern statt `text/html`
-- Das fertige HTML als JSON-Objekt verpacken: `{ html: "<base64-encoded-html>" }`
-- So umgeht man die Plattform-HTML-Injection komplett
-
-#### 2. `src/components/ExportButton.tsx` — JSON-Response parsen
-
-- Statt `res.text()` → `res.json()` und Base64 decodieren
-- Rest bleibt gleich (Blob → Download)
-
-#### 3. `export.html` — Google Fonts einbetten
-
-- Google Fonts Link (`Montserrat`, `Inter`, `JetBrains Mono`) im `<head>` hinzufuegen, damit Schriften in der exportierten Datei geladen werden (diese kommen aktuell ueber `index.css` @import, was im Standalone-File funktionieren sollte, aber sicherheitshalber auch als `<link>` Tag)
-
-#### 4. Lovable Badge entfernen
-
-- In der Middleware nach dem Inlining: Badge-HTML (`<aside id="lovable-badge"...`) und zugehoerige Scripts/Styles per Regex entfernen, falls sie trotz JSON-Wrapper durchkommen
-
-### Technische Details
-
-```
-// vite.config.ts Middleware — Antwort als JSON
-const base64 = Buffer.from(htmlSource).toString("base64");
-res.setHeader("Content-Type", "application/json");
-res.end(JSON.stringify({ html: base64 }));
-
-// ExportButton.tsx — Decode
-const { html: base64 } = await res.json();
-const html = atob(base64);
-const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-```
-
-### Dateien
-
-| Datei | Aenderung |
-|---|---|
-| `vite.config.ts` | Middleware: JSON-Response statt HTML |
-| `src/components/ExportButton.tsx` | Base64-Decode aus JSON |
-| `export.html` | Google Fonts `<link>` Tags hinzufuegen |
 
