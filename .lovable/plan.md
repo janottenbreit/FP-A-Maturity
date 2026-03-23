@@ -1,76 +1,65 @@
 
 
-## Fix: Interaktiver HTML-Export — Weisser Bildschirm
+## Fix: HTML-Export — Weisser Bildschirm
 
 ### Ursache
 
-Der Export ist kaputt, weil Vite im Dev-Modus **einzelne ESM-Module** ueber HTTP ausliefert (z.B. `/src/main.tsx`, `/src/App.tsx`, `/node_modules/.vite/deps/react.js`). Wenn man das Entry-Script inline in eine HTML-Datei packt, enthaelt es `import`-Statements die auf den Server zeigen — beim Oeffnen als lokale Datei gibt es keinen Server → alle Imports schlagen fehl → weisser Bildschirm.
+Die exportierte Datei enthaelt immer noch **externe Asset-Referenzen** statt inlintem Code:
 
-### Loesung: Rekursives Module-Crawling
+```html
+<script type="module" crossorigin src="/assets/index-IiIMmMk1.js"></script>
+<link rel="stylesheet" crossorigin href="/assets/index-CNKqfShw.css">
+```
 
-Der ExportButton muss **alle Module rekursiv vom Vite Dev Server fetchen** und sie als self-contained Script in die HTML-Datei einbetten. Der Vite Dev Server transformiert bereits TSX → JS — wir muessen nur die gesamte Import-Kette verfolgen und alles zusammenfuehren.
+Zwei Probleme:
 
-### Konkreter Ansatz
+1. **Lovable-Plattform injiziert Badge/OG-Tags** in die HTML-Antwort von `/__export` und ueberschreibt moeglicherweise den inlinten Inhalt
+2. Der Export-Build produziert die korrekten Chunks, aber die Plattform-Transformation fuegt die externen Referenzen wieder ein
 
-#### `src/components/ExportButton.tsx` — komplett neu
+### Loesung
 
-**Schritt 1: Rekursiver Module-Crawler**
+Den Export-Inhalt **nicht als HTML** zurueckgeben, sondern als **Base64-encodierten JSON-Payload**. So kann die Plattform den Inhalt nicht als HTML interpretieren und transformieren.
 
-Eine Funktion `crawlModules(entryUrl)` die:
-1. Den Entry-Point `/src/main.tsx` vom Dev Server fetcht (Vite liefert transformiertes JS)
-2. Alle `import`-Statements per Regex parst (sowohl statische als auch dynamische)
-3. Jeden importierten Pfad aufloest (relativ → absolut, `@/` → `/src/`)
-4. Rekursiv alle Abhaengigkeiten fetcht (lokale `/src/` Module UND npm-Module aus `/node_modules/.vite/deps/`)
-5. Einen Dependency-Graph aufbaut (Map von URL → transformiertem JS-Code)
+### Aenderungen
 
-**Schritt 2: Module zu Blob-URLs konvertieren**
+#### 1. `vite.config.ts` — Middleware anpassen
 
-Da inline `<script type="module">` keine relativen Imports aufloesen kann:
-1. Bottom-up durch den Dependency-Graph gehen (Blaetter zuerst)
-2. Jedes Modul als `Blob` → `URL.createObjectURL` registrieren
-3. Im Parent-Modul die Import-Pfade durch die Blob-URLs ersetzen
-4. Resultat: Ein Entry-Modul dessen gesamte Import-Kette auf Blob-URLs zeigt
+- Content-Type auf `application/json` aendern statt `text/html`
+- Das fertige HTML als JSON-Objekt verpacken: `{ html: "<base64-encoded-html>" }`
+- So umgeht man die Plattform-HTML-Injection komplett
 
-**Problem:** Blob-URLs funktionieren nicht in einer gespeicherten HTML-Datei (sie sind session-gebunden).
+#### 2. `src/components/ExportButton.tsx` — JSON-Response parsen
 
-### Besserer Ansatz: Data-URI Module
+- Statt `res.text()` → `res.json()` und Base64 decodieren
+- Rest bleibt gleich (Blob → Download)
 
-Statt Blob-URLs werden Module als `data:text/javascript;base64,...` URIs eingebettet:
-1. Gleicher rekursiver Crawl
-2. Alle Imports werden bottom-up durch Data-URIs ersetzt
-3. Das Entry-Modul wird als einzelnes `<script type="module">` mit rewrittenen Imports eingebettet
+#### 3. `export.html` — Google Fonts einbetten
 
-**Problem:** Manche Browser blockieren `import` von Data-URIs aus Sicherheitsgruenden.
+- Google Fonts Link (`Montserrat`, `Inter`, `JetBrains Mono`) im `<head>` hinzufuegen, damit Schriften in der exportierten Datei geladen werden (diese kommen aktuell ueber `index.css` @import, was im Standalone-File funktionieren sollte, aber sicherheitshalber auch als `<link>` Tag)
 
-### Pragmatischster Ansatz (empfohlen): Single IIFE Bundle
+#### 4. Lovable Badge entfernen
 
-Statt das ESM-Format beizubehalten, konvertieren wir alle Module in ein **einziges IIFE-Script**:
+- In der Middleware nach dem Inlining: Badge-HTML (`<aside id="lovable-badge"...`) und zugehoerige Scripts/Styles per Regex entfernen, falls sie trotz JSON-Wrapper durchkommen
 
-1. **Crawl** alle Module rekursiv vom Vite Dev Server
-2. **Registriere** jedes Modul in einem internen Module-System:
-   ```
-   const __modules = {};
-   function __define(id, factory) { ... }
-   function __require(id) { ... }
-   ```
-3. **Konvertiere** jedes ESM-Modul:
-   - `import X from "Y"` → `const X = __require("Y")`
-   - `export default Z` → `__modules[id].default = Z`
-   - `export { A, B }` → `__modules[id].A = A; ...`
-4. **Verpacke** alles in ein `<script>` (kein `type="module"` noetig)
+### Technische Details
 
-#### Dateien
+```
+// vite.config.ts Middleware — Antwort als JSON
+const base64 = Buffer.from(htmlSource).toString("base64");
+res.setHeader("Content-Type", "application/json");
+res.end(JSON.stringify({ html: base64 }));
+
+// ExportButton.tsx — Decode
+const { html: base64 } = await res.json();
+const html = atob(base64);
+const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+```
+
+### Dateien
 
 | Datei | Aenderung |
 |---|---|
-| `src/components/ExportButton.tsx` | Komplett neu — rekursiver Module-Crawler + IIFE-Bundler |
-| `src/components/ExportApp.tsx` | Keine Aenderung (bereits korrekt) |
-| `src/main.tsx` | Keine Aenderung (Export-Mode-Check bereits vorhanden) |
-
-#### Einschraenkungen
-
-- Der Crawl kann 5-15 Sekunden dauern (viele Module zu fetchen)
-- Loading-Indikator mit Fortschritt (z.B. "Lade Module... 42/128")
-- Funktioniert nur in der Lovable Preview-Umgebung (Vite Dev Server muss laufen)
-- Exportierte Datei wird ~2-5 MB gross (gesamte React + Radix + App-Code)
+| `vite.config.ts` | Middleware: JSON-Response statt HTML |
+| `src/components/ExportButton.tsx` | Base64-Decode aus JSON |
+| `export.html` | Google Fonts `<link>` Tags hinzufuegen |
 
