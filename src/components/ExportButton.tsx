@@ -2,6 +2,8 @@ import { Download, Loader2 } from "lucide-react";
 import { useState, useCallback } from "react";
 
 export default function ExportButton() {
+  if (import.meta.env.PROD) return null;
+
   const [loading, setLoading] = useState(false);
 
   const handleExport = useCallback(async () => {
