@@ -1,40 +1,38 @@
 
 
-## PDF v4: Querformat-Matrix + vollstaendige Beschreibungen
+## PDF v5: Schriftgrößen +2.5pt + vollständige Texte
 
-### Zwei Aenderungen
+### Änderungen gegenüber v4
 
-**1. Neue erste Seite (Querformat / Landscape)**
-Eine horizontale Seite direkt nach der Titelseite, die die komplette 6×5 Heatmap-Matrix zeigt:
-- Zeilen = 6 Dimensionen (Reporting, Analysis, Forecasting, Consulting, Talent, Data/Tools)
-- Spalten = 5 Level (L1–L5)
-- Jede Zelle zeigt den `short`-Text in der jeweiligen Level-Farbe
-- Farbige Zellen-Hintergruende analog zur Web-App
+1. **Schriftgrößen +2.5pt** auf allen Dimensionsseiten-Karten:
+   - Level-Titel (short): 8.5 → 11pt
+   - Beschreibung (desc): 7 → 9.5pt
+   - Beispiele (examples): 7 → 9.5pt
+   - Engpass/Next Level: 7 → 9.5pt
 
-**2. Detailseiten: `desc` statt `short`**
-Auf den 6 Dimensionsseiten wird statt dem kurzen `short`-Text die vollstaendige `desc`-Beschreibung als Haupttext pro Level verwendet. Schriftgroesse ggf. leicht reduziert (7pt), damit alles auf eine Seite passt.
+2. **Engpass und Next Level vollständig**: Kein `textwrap.shorten()` — kompletter `constraint`- und `graduate`-Text mit Zeilenumbruch via `textwrap.wrap()`.
 
-### Seitenstruktur (9 Seiten)
+3. **3 Beispiele statt 2** pro Level-Karte.
 
-1. Titelseite (Hochformat)
-2. **NEU: Heatmap-Matrix (Querformat/Landscape)**
-3. Reporting (Hochformat, mit `desc`)
-4. Analysis
-5. Forecasting
-6. Consulting
-7. Talent
-8. Data / Tools
-9. (optional: Uebersicht L1–L5 aus v3 kann entfallen oder ans Ende)
+### Was bleibt gleich
+
+- 8 Seiten: Titelseite (Portrait), Landscape-Matrix, 6 Dimensionsseiten (Portrait)
+- Kartengrößen und -positionen identisch zu v4
+- Dunkles Design (#111827), Level-Farben, Montserrat/JetBrains Mono
+- Glassmorphismus-Karten mit farbigem Seitenakzent
+
+### Machbarkeit
+
+Pro Karte bei 9.5pt (~11pt Zeilenhöhe): Level-Titel (1 Zeile) + desc (2 Zeilen) + 3 Beispiele (3 Zeilen) + Engpass (1-2 Zeilen) + Graduate (1-2 Zeilen) = ~9 Zeilen = ~100pt. 5 Karten × 100pt = 500pt — passt in die ~750pt nutzbare Höhe auf A4.
 
 ### Technische Umsetzung
 
-- reportlab unterstuetzt gemischte Seitenformate: `c.setPageSize(landscape(A4))` fuer Seite 2, sonst `A4`
-- Matrix-Seite: 6 Zeilen × 5 Spalten, farbige Zellen mit `short`-Text, Wortumbruch
-- Detailseiten: `desc` ersetzt `short` als Hauptbeschreibung, Rest (examples, constraint, graduate) bleibt
-- Output: `/mnt/documents/fpa-reifegrad_v4.pdf`
-- QA aller 9 Seiten
+- Neues Python-Script (da `/tmp` geleert), alle Daten aus `maturityData.ts` als Python-Dict eingebettet
+- Nur Font-Size-Konstanten und Wrapping-Logik geändert vs. v4-Logik
+- Output: `/mnt/documents/fpa-reifegrad_v5.pdf`
+- QA aller 8 Seiten via `pdftoppm` + visuelle Inspektion
 
 | Artifact | Pfad |
 |---|---|
-| PDF | `/mnt/documents/fpa-reifegrad_v4.pdf` |
+| PDF | `/mnt/documents/fpa-reifegrad_v5.pdf` |
 
