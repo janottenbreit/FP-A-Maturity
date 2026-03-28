@@ -1,42 +1,40 @@
 
 
-## PDF v3: Eine Seite pro Dimension
+## PDF v4: Querformat-Matrix + vollstaendige Beschreibungen
 
-### Aenderung gegenueber v2
+### Zwei Aenderungen
 
-Jede Dimension (Reporting, Analysis, etc.) wird auf **eine Seite** komprimiert statt zwei. Ergibt **8 Seiten** total (Titel + Uebersicht + 6 Dimensionen).
+**1. Neue erste Seite (Querformat / Landscape)**
+Eine horizontale Seite direkt nach der Titelseite, die die komplette 6×5 Heatmap-Matrix zeigt:
+- Zeilen = 6 Dimensionen (Reporting, Analysis, Forecasting, Consulting, Talent, Data/Tools)
+- Spalten = 5 Level (L1–L5)
+- Jede Zelle zeigt den `short`-Text in der jeweiligen Level-Farbe
+- Farbige Zellen-Hintergruende analog zur Web-App
 
-### Wie der Inhalt gekuerzt wird
+**2. Detailseiten: `desc` statt `short`**
+Auf den 6 Dimensionsseiten wird statt dem kurzen `short`-Text die vollstaendige `desc`-Beschreibung als Haupttext pro Level verwendet. Schriftgroesse ggf. leicht reduziert (7pt), damit alles auf eine Seite passt.
 
-- **desc** → entfaellt, nur `short` als Level-Titel
-- **examples** → max. 2 Bullets statt 3–5, gekuerzt
-- **constraint** → 1 Zeile, Kurzfassung
-- **graduate** → 1 Zeile, Kurzfassung
-- Schriftgroesse etwas kleiner (7–8pt statt 8–9pt)
-- Karten kompakter, weniger Padding
+### Seitenstruktur (9 Seiten)
 
-### Seitenstruktur (8 Seiten)
-
-1. Titelseite
-2. Uebersicht (L1–L5)
-3. Reporting (5 Level auf einer Seite)
+1. Titelseite (Hochformat)
+2. **NEU: Heatmap-Matrix (Querformat/Landscape)**
+3. Reporting (Hochformat, mit `desc`)
 4. Analysis
 5. Forecasting
 6. Consulting
 7. Talent
 8. Data / Tools
+9. (optional: Uebersicht L1–L5 aus v3 kann entfallen oder ans Ende)
 
-### Visuelles Design
+### Technische Umsetzung
 
-Unveraendert: dunkler Hintergrund, Level-Farben, Montserrat/JetBrains Mono, Glassmorphismus-Karten.
-
-### Technisch
-
-- Angepasstes Python-Script, gleiche Bibliotheken
-- Output: `/mnt/documents/fpa-reifegrad_v3.pdf`
-- QA aller 8 Seiten
+- reportlab unterstuetzt gemischte Seitenformate: `c.setPageSize(landscape(A4))` fuer Seite 2, sonst `A4`
+- Matrix-Seite: 6 Zeilen × 5 Spalten, farbige Zellen mit `short`-Text, Wortumbruch
+- Detailseiten: `desc` ersetzt `short` als Hauptbeschreibung, Rest (examples, constraint, graduate) bleibt
+- Output: `/mnt/documents/fpa-reifegrad_v4.pdf`
+- QA aller 9 Seiten
 
 | Artifact | Pfad |
 |---|---|
-| PDF | `/mnt/documents/fpa-reifegrad_v3.pdf` |
+| PDF | `/mnt/documents/fpa-reifegrad_v4.pdf` |
 
