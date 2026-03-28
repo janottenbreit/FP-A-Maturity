@@ -91,6 +91,7 @@ ${cssChunks.join("\n")}
 }
 
 export default defineConfig(({ mode }) => ({
+  base: mode === "production" ? "/FP-A-Maturity/" : "/",
   server: {
     host: "::",
     port: 8080,
