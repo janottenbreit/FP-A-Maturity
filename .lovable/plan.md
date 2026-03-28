@@ -1,38 +1,45 @@
 
 
-## PDF v5: Schriftgrößen +2.5pt + vollständige Texte
+## PDF v6: Matrix-Schrift vergroessern + neue Titelseite
 
-### Änderungen gegenüber v4
+### 1. Titelseite neu gestalten
 
-1. **Schriftgrößen +2.5pt** auf allen Dimensionsseiten-Karten:
-   - Level-Titel (short): 8.5 → 11pt
-   - Beschreibung (desc): 7 → 9.5pt
-   - Beispiele (examples): 7 → 9.5pt
-   - Engpass/Next Level: 7 → 9.5pt
+Statt einer einfachen Titelseite wird ein konzeptionelles Layout erstellt, das das 6x5-Modell sofort greifbar macht:
 
-2. **Engpass und Next Level vollständig**: Kein `textwrap.shorten()` — kompletter `constraint`- und `graduate`-Text mit Zeilenumbruch via `textwrap.wrap()`.
+- **Headline**: "FP&A Reifegrad-Modell" gross und zentral
+- **Subline**: "6 Dimensionen × 5 Reifegrade — ein Framework das tiefer geht als eine Checkliste"
+- **Visuelle Mini-Matrix**: Eine schematische 6×5-Gitter-Darstellung (ohne Text, nur farbige Bloecke) als visuelles Element, das die Struktur auf einen Blick zeigt
+- **6 Dimensions-Labels** links neben der Mini-Matrix (Reporting, Analysis, Forecasting, Consulting, Talent, Data/Tools)
+- **5 Level-Labels** oben (Ad Hoc → World-Class) mit Farbverlauf von Rot nach Gruen
+- **Kernbotschaft** unten: "Jede Zelle definiert: Beschreibung · Beispiele · Engpass · Graduation" — zeigt die Tiefe des Modells (4 Ebenen pro Zelle statt nur ein Label)
+- Dunkler Hintergrund, Level-Farben als Akzente
 
-3. **3 Beispiele statt 2** pro Level-Karte.
+### 2. Matrix-Seite (Landscape): Schrift vergroessern
 
-### Was bleibt gleich
+- Zellen-Schrift von ~5-6pt auf **8pt** erhoehen
+- Zellen-Padding optimieren damit der `short`-Text die Zelle besser ausfuellt
+- Dimension-Labels und Level-Header ebenfalls groesser (10-11pt)
+- Wrap-Width anpassen an groessere Schrift (weniger Zeichen pro Zeile, mehr Zeilen)
 
-- 8 Seiten: Titelseite (Portrait), Landscape-Matrix, 6 Dimensionsseiten (Portrait)
-- Kartengrößen und -positionen identisch zu v4
-- Dunkles Design (#111827), Level-Farben, Montserrat/JetBrains Mono
-- Glassmorphismus-Karten mit farbigem Seitenakzent
+### 3. Rest bleibt gleich
 
-### Machbarkeit
+- 6 Dimensionsseiten mit 9.5pt Schrift, vollstaendigen Texten (wie v5)
+- Dunkles Design, Level-Farben, Glassmorphismus
 
-Pro Karte bei 9.5pt (~11pt Zeilenhöhe): Level-Titel (1 Zeile) + desc (2 Zeilen) + 3 Beispiele (3 Zeilen) + Engpass (1-2 Zeilen) + Graduate (1-2 Zeilen) = ~9 Zeilen = ~100pt. 5 Karten × 100pt = 500pt — passt in die ~750pt nutzbare Höhe auf A4.
+### Seitenstruktur (8 Seiten)
 
-### Technische Umsetzung
+1. Titelseite (Portrait) — NEU: konzeptionell mit Mini-Matrix
+2. Heatmap-Matrix (Landscape) — groessere Schrift
+3-8. Dimensionsseiten (Portrait) — wie v5
 
-- Neues Python-Script (da `/tmp` geleert), alle Daten aus `maturityData.ts` als Python-Dict eingebettet
-- Nur Font-Size-Konstanten und Wrapping-Logik geändert vs. v4-Logik
-- Output: `/mnt/documents/fpa-reifegrad_v5.pdf`
-- QA aller 8 Seiten via `pdftoppm` + visuelle Inspektion
+### Technisch
+
+- Neues Python-Script, Titelseite komplett neu gezeichnet mit reportlab Canvas
+- Matrix-Zellen: Font-Size erhoehen, `textwrap.wrap` Width reduzieren
+- Output: `/mnt/documents/fpa-reifegrad_v6.pdf`
+- QA aller 8 Seiten
 
 | Artifact | Pfad |
 |---|---|
-| PDF | `/mnt/documents/fpa-reifegrad_v5.pdf` |
+| PDF | `/mnt/documents/fpa-reifegrad_v6.pdf` |
 
