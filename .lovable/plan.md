@@ -1,39 +1,51 @@
 
 
-## PDF-Praesentation: FP&A Reifegrad (Hochformat)
+## PDF v2: Mehr Inhalt aus dem Reifegrad-Modell
 
-### Inhalt
+### Aenderung gegenueber v1
 
-Portrait-PDF basierend auf den 6 Dimensionen und 5 Reifegraden aus `maturityData.ts`. Visuelles Design im Stil der bestehenden App (dunkle Slate/Teal-Palette, Montserrat + JetBrains Mono, Glassmorphismus-Aesthetik).
+Die bisherige PDF zeigte pro Dimension nur den **Short-Text** fuer jedes Level. Die neue Version nutzt **alle verfuegbaren Inhalte** aus `maturityData.ts`:
 
-### Seitenstruktur (8 Seiten)
+- **desc** (vollstaendige Beschreibung)
+- **examples** (alle Beispiele als Bullet-Liste)
+- **constraint** (Engpass/Limitation)
+- **graduate** (Naechstes Level / Handlungsempfehlung)
 
-1. **Titelseite** — "FP&A Reifegrad" gross, minimalistisch, dunkler Hintergrund mit Teal-Akzent
-2. **Uebersicht** — 5 Level (L1–L5) mit Farbskala und Kurzbeschreibung, visuell als vertikale Progression
-3. **Reporting** — Dimension-Deep-Dive: alle 5 Level mit Short-Text, Constraint, Graduate
-4. **Analysis** — gleiche Struktur
-5. **Forecasting** — gleiche Struktur
-6. **Consulting** — gleiche Struktur
-7. **Talent** — gleiche Struktur
-8. **Data / Tools** — gleiche Struktur
+### Seitenstruktur (14 Seiten)
 
-### Visuelles Konzept
+1. **Titelseite** — "FP&A Reifegrad", minimalistisch
+2. **Uebersicht** — 5 Level (L1–L5) mit Farbskala und Kurzname
+3–4. **Reporting** (2 Seiten) — L1–L3 auf Seite 1, L4–L5 auf Seite 2
+5–6. **Analysis** (2 Seiten)
+7–8. **Forecasting** (2 Seiten)
+9–10. **Consulting** (2 Seiten)
+11–12. **Talent** (2 Seiten)
+13–14. **Data / Tools** (2 Seiten)
 
-- **Farbpalette**: Dunkler Hintergrund (#151C2C), Teal-Akzent (#64B5C6), Gold (#D4A843), Level-Farben (Coral→Gruen)
-- **Typografie**: Montserrat (Titel), JetBrains Mono oder aehnlich (Labels/Badges)
-- **Layout**: Jede Dimension-Seite zeigt 5 Level als vertikale Karten/Bloecke mit farbigen Seitenakzenten
-- **Stil**: Geometrische Formen, subtile Linien, grosszuegiger Whitespace auf dunklem Grund
+### Inhalt pro Level-Block
+
+Jeder Level-Block zeigt:
+- **Farbiger Level-Badge** (L1 Ad Hoc ... L5 World-Class)
+- **Beschreibung** (desc — vollstaendig)
+- **Beispiele** (alle examples als ▸-Bullets)
+- **⚠ Constraint** (farbig hervorgehoben)
+- **↗ Graduate** (naechstes Level, Teal-Akzent)
+
+### Visuelles Design (unveraendert)
+
+- Dunkler Hintergrund (#111827), Level-Farben, Gold-Akzente
+- Montserrat + JetBrains Mono
+- Glassmorphismus-Karten mit abgerundeten Ecken
+- Seitenakzent-Linie links in Level-Farbe
 
 ### Technische Umsetzung
 
-- Python-Script mit `reportlab` fuer PDF-Erzeugung
-- Google Fonts (Montserrat, JetBrains Mono) von Skill-Fonts oder als Download
-- Output nach `/mnt/documents/fpa-reifegrad.pdf`
-- QA via `pdftoppm` + visueller Inspektion
-
-### Dateien
+- Python-Script mit `reportlab`, Fonts wie bisher
+- Dynamische Seitenumbrueche: 2–3 Level pro Seite je nach Textlaenge
+- Output: `/mnt/documents/fpa-reifegrad_v2.pdf`
+- QA aller 14 Seiten via `pdftoppm`
 
 | Artifact | Pfad |
 |---|---|
-| PDF | `/mnt/documents/fpa-reifegrad.pdf` |
+| PDF | `/mnt/documents/fpa-reifegrad_v2.pdf` |
 
