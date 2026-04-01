@@ -1,36 +1,23 @@
 
 
-## PDF v8: English Translation
+## PDF v9: Fix white bar on page 2
 
-### Scope
-Translate the entire FP&A Maturity PDF (currently v7, 8 pages) from German to English. All content embedded in the Python generation script will be translated.
+### Problem
+Page 2 (landscape matrix) has a white bar at the top. This is caused by the background rectangle not covering the full landscape page dimensions — likely the portrait height is used instead of the landscape height, or the rect is drawn after a translate that shifts it down.
 
-### What changes
+### Fix
+In the Python generation script, ensure that when drawing page 2:
+1. `c.setPageSize(landscape(letter))` is called
+2. `w, h = landscape(letter)` is used for the background rect
+3. `c.rect(0, 0, w, h, stroke=0, fill=1)` is drawn **first** before any other content on that page
 
-1. **Title page**: "FP&A Maturity Model" / "6 Dimensions x 5 Maturity Levels — a framework that goes deeper than a checklist" / depth indicators translated (Description, Examples, Constraint, Graduation)
-
-2. **Matrix page (Landscape)**: All 30 `short` texts translated to English (e.g. "Inkonsistent, manuell..." → "Inconsistent, manual, month-end >2 weeks. Back-office.")
-
-3. **6 Detail pages**: All content translated per cell:
-   - `desc` (full description)
-   - `examples` (3 per card)
-   - `constraint` ("Constraint" label instead of "Engpass")
-   - `graduate` ("Next Level" label stays, text translated)
-
-4. **Labels**: Section headers like "Engpass" → "Constraint", "Nächstes Level" → "Next Level", "Beispiele" → "Examples", "Beschreibung" → "Description"
-
-### What stays the same
-- Layout, colors, font sizes (10.5pt matrix, 9.5pt/11pt detail pages), dark design — all identical to v7
-- Page structure: 8 pages (title, matrix, 6 dimensions)
-- Dimension and level names already English (Reporting, Analysis, etc.)
-
-### Technical
-- New Python script with all German text replaced by English translations
-- Same reportlab logic as v7, only string content changes
-- Output: `/mnt/documents/fpa-reifegrad_v8.pdf`
+### Everything else unchanged
+- All content remains English (v8)
+- Layout, fonts, colors identical
+- Output: `/mnt/documents/fpa-reifegrad_v9.pdf`
 - QA all 8 pages
 
 | Artifact | Path |
 |---|---|
-| PDF | `/mnt/documents/fpa-reifegrad_v8.pdf` |
+| PDF | `/mnt/documents/fpa-reifegrad_v9.pdf` |
 
