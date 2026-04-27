@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { X, ChevronDown } from "lucide-react";
-import { LEVELS, DIMENSIONS, CELL_DATA, type Level, type Dimension } from "@/constants/maturityData";
+import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { LEVELS, DIMENSIONS, type Level, type Dimension, type CellData } from "@/constants/maturityData";
 import {
   Accordion,
   AccordionContent,
@@ -20,6 +21,11 @@ function hexToRgb(hex: string): string {
   return `${r},${g},${b}`;
 }
 
+function useCellData(dimensionId: string, levelId: number): CellData {
+  const { t } = useTranslation();
+  return t(`cells.${dimensionId}.${levelId}`, { returnObjects: true }) as CellData;
+}
+
 const HeatmapCell = ({
   dimension,
   level,
@@ -34,7 +40,7 @@ const HeatmapCell = ({
   onClick: () => void;
 }) => {
   const [hovered, setHovered] = useState(false);
-  const data = CELL_DATA[dimension.id][level.id];
+  const data = useCellData(dimension.id, level.id);
   const active = isSelected || hovered;
 
   return (
@@ -79,8 +85,12 @@ const DetailPanel = ({
   cell: SelectedCell;
   onClose: () => void;
 }) => {
-  const data = CELL_DATA[cell.dimension.id][cell.level.id];
+  const { t } = useTranslation();
+  const data = useCellData(cell.dimension.id, cell.level.id);
   const IconComponent = cell.dimension.Icon;
+  const dimensionLabel = t(`dimensions.${cell.dimension.id}`);
+  const levelShort = t(`levels.${cell.level.id}.short`);
+  const levelName = t(`levels.${cell.level.id}.name`);
 
   return (
     <div
@@ -101,7 +111,7 @@ const DetailPanel = ({
       <div className="flex items-center gap-3 mb-4">
         <IconComponent size={22} style={{ color: "#D4A843" }} />
         <span className="font-display text-lg font-semibold" style={{ color: "#D4A843" }}>
-          {cell.dimension.label}
+          {dimensionLabel}
         </span>
         <span
           className="font-mono-brand text-[11px] font-bold tracking-wide px-2.5 py-0.5 rounded-full"
@@ -110,7 +120,7 @@ const DetailPanel = ({
             color: cell.level.color,
           }}
         >
-          {cell.level.short} – {cell.level.name}
+          {levelShort} – {levelName}
         </span>
       </div>
 
@@ -122,7 +132,7 @@ const DetailPanel = ({
             style={{ color: "#FFFFFF", backgroundColor: "transparent", border: "1px solid #3D4470" }}
           >
             <span className="flex items-center gap-2">
-              <span>📋</span> BESCHREIBUNG
+              <span>📋</span> {t("ui.description")}
             </span>
           </AccordionTrigger>
           <AccordionContent className="px-3 pt-2">
@@ -138,7 +148,7 @@ const DetailPanel = ({
             style={{ color: "#D4A843", backgroundColor: "transparent", border: "1px solid #3D4470" }}
           >
             <span className="flex items-center gap-2">
-              <span>💡</span> BEISPIELE ({data.examples.length})
+              <span>💡</span> {t("ui.examples")} ({data.examples.length})
             </span>
           </AccordionTrigger>
           <AccordionContent className="px-3 pt-2">
@@ -158,7 +168,7 @@ const DetailPanel = ({
             style={{ color: "#E85D5D", backgroundColor: "transparent", border: "1px solid #3D4470" }}
           >
             <span className="flex items-center gap-2">
-              <span>⚠</span> CONSTRAINT
+              <span>⚠</span> {t("ui.constraint")}
             </span>
           </AccordionTrigger>
           <AccordionContent className="px-3 pt-2">
@@ -174,7 +184,7 @@ const DetailPanel = ({
             style={{ color: "#4ECDC4", backgroundColor: "transparent", border: "1px solid #3D4470" }}
           >
             <span className="flex items-center gap-2">
-              <span>↗</span> GRADUATE — NÄCHSTES LEVEL
+              <span>↗</span> {t("ui.graduate")}
             </span>
           </AccordionTrigger>
           <AccordionContent className="px-3 pt-2">
@@ -189,6 +199,7 @@ const DetailPanel = ({
 };
 
 export default function MaturityHeatmap() {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<SelectedCell | null>(null);
   const [hoveredCol, setHoveredCol] = useState<number | null>(null);
 
@@ -205,11 +216,11 @@ export default function MaturityHeatmap() {
       {/* Header */}
       <header className="text-center mb-10 max-w-xl">
         <h1 className="font-display text-2xl md:text-[34px] font-semibold leading-tight tracking-tight mb-3">
-          <span style={{ color: "#D4A843" }}>Reifegrad</span>{" "}
-          <span className="text-foreground">in FP&A</span>
+          <span style={{ color: "#D4A843" }}>{t("header.titlePart1")}</span>{" "}
+          <span className="text-foreground">{t("header.titlePart2")}</span>
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed tracking-wide">
-          Reifegrade der FP&A-Funktion in Unternehmen
+          {t("header.subtitle")}
         </p>
       </header>
 
@@ -228,7 +239,7 @@ export default function MaturityHeatmap() {
               className="inline-block w-2.5 h-2.5 rounded-sm"
               style={{ backgroundColor: level.color }}
             />
-            {level.short} – {level.name}
+            {t(`levels.${level.id}.short`)} – {t(`levels.${level.id}.name`)}
           </div>
         ))}
       </div>
@@ -254,9 +265,9 @@ export default function MaturityHeatmap() {
               onMouseLeave={() => setHoveredCol(null)}
             >
               <div className="font-display text-sm font-semibold" style={{ color: level.color }}>
-                {level.short}
+                {t(`levels.${level.id}.short`)}
               </div>
-              <div className="text-[10px] text-muted-foreground">{level.name}</div>
+              <div className="text-[10px] text-muted-foreground">{t(`levels.${level.id}.name`)}</div>
             </div>
           ))}
 
@@ -272,7 +283,7 @@ export default function MaturityHeatmap() {
                     className="font-mono-brand text-[11px] font-bold tracking-wide uppercase"
                     style={{ color: "#D4A843" }}
                   >
-                    {dim.label}
+                    {t(`dimensions.${dim.id}`)}
                   </span>
                 </div>
 
@@ -299,7 +310,7 @@ export default function MaturityHeatmap() {
           <DetailPanel cell={selected} onClose={() => setSelected(null)} />
         ) : (
           <p className="text-center text-[11px] italic" style={{ color: "#3D4470" }}>
-            Klicke auf eine Zelle für Details — Beschreibung, Beispiele, Constraint & Graduation
+            {t("ui.clickHint")}
           </p>
         )}
       </div>

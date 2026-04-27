@@ -1,0 +1,414 @@
+{
+  "header": {
+    "titlePart1": "Maturity",
+    "titlePart2": "in FP&A",
+    "subtitle": "Maturity stages of the FP&A function in companies"
+  },
+  "ui": {
+    "description": "DESCRIPTION",
+    "examples": "EXAMPLES",
+    "constraint": "CONSTRAINT",
+    "graduate": "GRADUATE — NEXT LEVEL",
+    "clickHint": "Click a cell for details — description, examples, constraint & graduation"
+  },
+  "languageSwitcher": {
+    "label": "Language",
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "dimensions": {
+    "reporting": "Reporting",
+    "analysis": "Analysis",
+    "forecasting": "Forecasting",
+    "consulting": "Consulting",
+    "talent": "Talent",
+    "data_tools": "Data / Tools"
+  },
+  "levels": {
+    "1": { "name": "Ad Hoc", "short": "L1" },
+    "2": { "name": "Standardized", "short": "L2" },
+    "3": { "name": "Partnering", "short": "L3" },
+    "4": { "name": "Strategic", "short": "L4" },
+    "5": { "name": "World-Class", "short": "L5" }
+  },
+  "cells": {
+    "reporting": {
+      "1": {
+        "short": "Inconsistent, manual, month-end >2 weeks. Back-office.",
+        "desc": "Inconsistent, manual, month-end takes more than two weeks; Finance is a back-office function. Reports are produced on request, formats change month to month.",
+        "examples": [
+          "Every manager gets a different Excel",
+          "Commentary purely accounting-driven ('Travel expenses +12% YoY')",
+          "Pack has 40+ pages, no executive summary",
+          "CFO builds their own analyses because they don't trust the reports"
+        ],
+        "constraint": "Excel/manual, no templates. No single source of truth — numbers are challenged in meetings.",
+        "graduate": "Standardize templates, automate the basics. Introduce a reporting calendar, consolidate data sources."
+      },
+      "2": {
+        "short": "Monthly packs consistent, but dense and backward-looking.",
+        "desc": "Monthly packs are consistent and on-time, but dense, backward-looking and descriptive rather than explanatory. Finance delivers numbers but no context.",
+        "examples": [
+          "30-page PDF with P&L, balance sheet, cash flow — without 'so what?'",
+          "Variances listed, not prioritized",
+          "Board pack and management pack identical",
+          "Numbers are correct, but the story is missing"
+        ],
+        "constraint": "Too long, no insight. Reports answer 'what happened?', not 'what does it mean?'.",
+        "graduate": "Exec-ready packs with max. 10 core pages. KPI highlights on page 1. Commentary with recommended actions."
+      },
+      "3": {
+        "short": "Reports tailored to BU goals, stakeholder-specific views.",
+        "desc": "Reports tailored to BU goals. Different stakeholders get different views. Finance uses reports as a communication instrument.",
+        "examples": [
+          "Sales gets pipeline KPIs + margin instead of full-cost P&L",
+          "Leading alongside lagging indicators",
+          "Commentary with 'outlook' + 'action needed'",
+          "Flash reports <3 days after month-end"
+        ],
+        "constraint": "Complex, not linked to strategy. BU reports in silos — no line of sight to corporate strategy.",
+        "graduate": "Couple dashboards to strategy/OKRs. KPI hierarchy: corporate → BU → team."
+      },
+      "4": {
+        "short": "KPI dashboards central in leadership. Decision-driving.",
+        "desc": "KPI dashboards central in leadership. C-level uses Finance reports as the primary steering instrument. Reporting drives decisions.",
+        "examples": [
+          "Weekly pulse reports to CEO with 5 KPIs + trend",
+          "Board works directly with FP&A dashboards",
+          "Automated threshold alerts (churn >X%, pipeline <Y)",
+          "Integration of financial data + ops data (NPS, tickets, conversion)"
+        ],
+        "constraint": "Still reactive — alerts trigger analysis, but Finance does not anticipate proactively.",
+        "graduate": "Alerts with automated root-cause pre-analysis. Ops-Finance integrated (xP&A). Narrative automation."
+      },
+      "5": {
+        "short": "Self-service, proactive insights, near real-time.",
+        "desc": "Self-service dashboards with proactive insights. Finance delivers decision papers. Reporting is near real-time and democratized.",
+        "examples": [
+          "BU heads run their own ad-hoc analyses without FP&A",
+          "Natural language querying",
+          "Automated anomaly detection",
+          "Reporting cycle: continuous instead of monthly"
+        ],
+        "constraint": "Dashboard fatigue. 'Everyone is an analyst' without methodological guidance.",
+        "graduate": "Data governance for self-service. KPI hygiene: kill meetings for redundant reports."
+      }
+    },
+    "analysis": {
+      "1": {
+        "short": "Variance commentary vague. 'What', not 'why'.",
+        "desc": "Variance commentary is vague and shallow. Analysis = description, no explanatory model.",
+        "examples": [
+          "'EBITDA below plan due to higher personnel costs' — no detail (HC, salary, bonus?)",
+          "No bridge/waterfall",
+          "Variance = copy-paste from prior month"
+        ],
+        "constraint": "Accounting-driven — analysis follows the chart of accounts, not business logic.",
+        "graduate": "Root cause. Driver-based models (Revenue = Users × ARPU × Retention). Waterfall as standard."
+      },
+      "2": {
+        "short": "Consistent variances, but shallow. Budget-focused.",
+        "desc": "Consistent variances on M/Q/YTD, but shallow. Focus on budget deviation.",
+        "examples": [
+          "Bridge charts only at P&L level",
+          "'Revenue -5% vs. plan' without price/volume/mix",
+          "Analysis purely financial, no ops KPIs"
+        ],
+        "constraint": "Focus on 'what', not 'why'. Analysis stops at the delta.",
+        "graduate": "Root cause + business input. Price/volume/mix. Ops KPIs in variance analysis."
+      },
+      "3": {
+        "short": "Drivers explained, BU collaboration, 'so what'.",
+        "desc": "Drivers explained, BU collaboration. Finance asks the right questions, works with BUs on root causes.",
+        "examples": [
+          "Deep dives with BU leads on top-3 variances",
+          "Cohort analyses (retention, expansion)",
+          "Scenarios on deviations",
+          "FP&A delivers the 'so what'"
+        ],
+        "constraint": "Limited influence — heard, not always translated into decisions.",
+        "graduate": "Storytelling + influence training. Analyses → decision papers."
+      },
+      "4": {
+        "short": "Prescriptive insights, proactive on opportunities & risks.",
+        "desc": "Prescriptive insights tied to growth levers. Finance proactively identifies opportunities and risks.",
+        "examples": [
+          "Opportunities & risks with impact",
+          "Sensitivity ('1% churn = €X ARR')",
+          "Investment cases led by FP&A",
+          "Peer benchmarking standard"
+        ],
+        "constraint": "Capacity covers requested deep dives, not proactive scanning.",
+        "graduate": "Scenario analysis as a permanent format. Predictive elements. External data systematized."
+      },
+      "5": {
+        "short": "Predictive/prescriptive analytics drive strategy.",
+        "desc": "Predictive + prescriptive analytics continuously drive strategy. FP&A = analytical engine.",
+        "examples": [
+          "ML: churn prediction, demand forecasting, pricing",
+          "What-if self-service for C-level",
+          "Analytics COE with data scientists",
+          "Real-time alerts + anomaly detection"
+        ],
+        "constraint": "Capacity, complexity, over-engineering risk.",
+        "graduate": "Analytics COE. AI/ML applied selectively. Model governance."
+      }
+    },
+    "forecasting": {
+      "1": {
+        "short": "Annual budget only. No reforecast. 3–4 month process.",
+        "desc": "Annual budget only. Bottom-up over 3–4 months. No mid-year adjustment. Budget = 'contract'.",
+        "examples": [
+          "Process Sept→Jan, outdated by Feb",
+          "No accuracy measurement",
+          "Sandbagging",
+          "Account-level instead of driver-level",
+          "'No budget for that'"
+        ],
+        "constraint": "No reforecast. No mechanism for mid-year adjustment.",
+        "graduate": "Quarterly reforecasts. Accuracy tracking (MAPE, bias). Top-down sanity check."
+      },
+      "2": {
+        "short": "Quarterly forecasts, slow and inaccurate (>10% variance).",
+        "desc": "Budget + quarterly forecasts, slow (>2 weeks/cycle), inaccurate (>10% variance). Excel.",
+        "examples": [
+          "Forecast = 'adjust the budget'",
+          "80% data collection, 20% analysis",
+          "Scenarios only ad-hoc for the board",
+          "Each BU has its own template"
+        ],
+        "constraint": "Resource-intensive. No time for analysis.",
+        "graduate": "Driver-based models. Standardize templates. Cycle time <1 week. BU owns, FP&A facilitates."
+      },
+      "3": {
+        "short": "Rolling forecasts, BU input, partly driver-based.",
+        "desc": "Rolling forecasts, BU input systematized. Partly driver-based. Horizon beyond fiscal year.",
+        "examples": [
+          "Monthly rolling 12–18 months",
+          "BU input on 5–10 drivers instead of 200 accounts",
+          "Collaborative reviews",
+          "Base/bull/bear regularly"
+        ],
+        "constraint": "Inconsistent cadence. RF + budget in parallel = double burden.",
+        "graduate": "RF as primary. Reduce level of detail. Budget → annual target."
+      },
+      "4": {
+        "short": "Forecasts steer allocation, scenarios integrated.",
+        "desc": "Forecasts steer resource allocation + investments. Scenarios are an integral part.",
+        "examples": [
+          "Capital allocation based on scenarios instead of budget",
+          "Three-statement forecast",
+          "Auto-actuals upload",
+          "Direct ops input",
+          "Variance <5%"
+        ],
+        "constraint": "Ops input not fully integrated. Disconnected systems.",
+        "graduate": "Fully integrated driver-based models (xP&A). Scenario library. AI early-warning."
+      },
+      "5": {
+        "short": "Predictive, real-time, continuous planning.",
+        "desc": "Predictive real-time forecasting. Continuous planning. Forecast = living model.",
+        "examples": [
+          "Event-triggered updates",
+          "ML: demand, revenue, cash flow",
+          "Scenario self-service for C-level",
+          "Beyond Budgeting",
+          "Accuracy >95%"
+        ],
+        "constraint": "Tech dependency. Black-box risk. Resistance ('no budget').",
+        "graduate": "AI + human judgment. Model governance. Change management for Beyond Budgeting."
+      }
+    },
+    "consulting": {
+      "1": {
+        "short": "Finance = budget police. No seat at the table.",
+        "desc": "Finance as budget police and number provider. No seat at the table. BUs see a control function.",
+        "examples": [
+          "Only involved after the decision has been made",
+          "BU cases without Finance",
+          "'No' without alternatives",
+          "Exchange only at quarter-end"
+        ],
+        "constraint": "No seat at the table. Finance = blocker.",
+        "graduate": "Bi-weekly BU check-ins. Fast ad-hoc. Language: 'possible under conditions'."
+      },
+      "2": {
+        "short": "Some BU check-ins, one-way. Reports instead of advice.",
+        "desc": "Check-ins established, communication one-way (Finance → BU). Reports, no advice.",
+        "examples": [
+          "Budget review: Finance presents, BU nods",
+          "BU P&L exists, is not understood",
+          "Finance answers, doesn't ask",
+          "Joint plans on paper"
+        ],
+        "constraint": "Reactive. Finance waits for requests.",
+        "graduate": "BU reporting that BU leads actually want. Joint reviews. Finance learns the BU language."
+      },
+      "3": {
+        "short": "Analysts in BU meetings, seat at the table.",
+        "desc": "FP&A embedded in BU meetings, understands ops. Seat at the table, gets consulted.",
+        "examples": [
+          "FP&A in sales meetings with pipeline analyses",
+          "Joint business cases",
+          "Knows top-10 customers + competitors",
+          "'How does Finance see this?'"
+        ],
+        "constraint": "Heard, but no vote. Dependent on personal relationships.",
+        "graduate": "Dedicated business partners. Rotations. Finance sign-off >€X."
+      },
+      "4": {
+        "short": "Finance proactively shapes strategy. Integrated in leadership.",
+        "desc": "Finance shapes strategy proactively. CFO/Head of FP&A on the leadership team. Initiates analyses.",
+        "examples": [
+          "Quarterly strategic finance review",
+          "Mandate: M&A, pricing, go/no-go",
+          "BPs measured on BU performance",
+          "Challenges BU plans"
+        ],
+        "constraint": "BU coverage inconsistent. Person-dependent.",
+        "graduate": "Cover all BUs. Business-partner role + career path. Enterprise embedding."
+      },
+      "5": {
+        "short": "CEO's challenger. Finance indispensable, think tank.",
+        "desc": "Finance indispensable, CEO's challenger. FP&A = strategic think tank.",
+        "examples": [
+          "CFO = co-pilot",
+          ">80% of recommendations implemented",
+          "Alumni in GM/COO roles",
+          "Partners rotate BU ↔ headquarters"
+        ],
+        "constraint": "Talent scaling. Overload risk.",
+        "graduate": "Rotation program. Enterprise embedding. Culture of constructive challenge."
+      }
+    },
+    "talent": {
+      "1": {
+        "short": "Understaffed, generalists. FP&A not differentiated.",
+        "desc": "Understaffed, generalists. FP&A not differentiated from accounting. 'People who can do Excel'.",
+        "examples": [
+          "Controller does budget + reporting + consolidation + ad-hoc",
+          "No role profiles",
+          "High turnover",
+          "Accountant who 'does analyses on the side'"
+        ],
+        "constraint": "No defined roles. Accounting = FP&A on the org chart.",
+        "graduate": "FP&A as its own function. Role profiles. Hire for analytical profile."
+      },
+      "2": {
+        "short": "Own team, but skills focused on reporting.",
+        "desc": "Own team. Analysts + manager. Career paths vague, skills reporting-focused.",
+        "examples": [
+          "1 manager + 2–3 analysts",
+          "Reporting/budget yes, scenarios/storytelling no",
+          "Training = Excel course",
+          "Recruiting without FP&A differentiation"
+        ],
+        "constraint": "Skills focused on reporting. Analytical + communication skills underdeveloped.",
+        "graduate": "Skill matrix. IC vs. management track. Recruit business-savvy talent."
+      },
+      "3": {
+        "short": "Mix of builders + partners. Modeling + BU understanding.",
+        "desc": "Builders (analytical) + partners (communicative). Modeling depth + business breadth.",
+        "examples": [
+          "Dedicated roles: analyst, BP, data analyst",
+          "Rotations (6 months in BU)",
+          "Storytelling training",
+          "Independently delivers investment cases + board decks"
+        ],
+        "constraint": "Weak pipeline. Poaching. Dependent on 1–2 key people.",
+        "graduate": "Structured career paths. Influence training. Talent branding."
+      },
+      "4": {
+        "short": "Structured progression, function has reputation.",
+        "desc": "Balanced mix, structured progression. FP&A = attractive function. Systematic development.",
+        "examples": [
+          "Junior → Senior → Lead → Head",
+          "Succession planning",
+          "Mentoring",
+          "Recruiting from consulting + data science",
+          "Stakeholder feedback in performance reviews"
+        ],
+        "constraint": "Retention risk. Compensation vs. consulting/IB.",
+        "graduate": "Retention: comp + dev + visibility. FP&A as a springboard (BU lead, CFO)."
+      },
+      "5": {
+        "short": "Talent magnet, leadership feeder, CFO pipeline.",
+        "desc": "FP&A = talent magnet + leadership feeder. Attracts top talent, produces leaders.",
+        "examples": [
+          "Alumni in CFO/COO/GM roles",
+          "Internal waiting list",
+          "External branding",
+          "CFO pipeline: 2–3 ready"
+        ],
+        "constraint": "Complacency risk.",
+        "graduate": "Culture of influence. Manage the CFO pipeline. FP&A as innovation engine."
+      }
+    },
+    "data_tools": {
+      "1": {
+        "short": "Excel + email only. Data silos, manual, error-prone.",
+        "desc": "Excel + email only. Data in silos, manual. No data model, no BI.",
+        "examples": [
+          "Exports from 3+ systems",
+          "Versions contradict each other",
+          "Copy-paste ERP → template",
+          "Errors only surface in the board",
+          "Queries take days"
+        ],
+        "constraint": "Errors, slow. 70%+ of time spent on data collection.",
+        "graduate": "Centralize (DWH). BI tool. Single source of truth."
+      },
+      "2": {
+        "short": "BI tools available, low adoption. Still Excel-heavy.",
+        "desc": "BI/EPM available, low adoption. Excel remains primary. Data partly central, processes manual.",
+        "examples": [
+          "Power BI installed, 2/10 use it",
+          "DWH exists, FP&A falls back to Excel",
+          "Planning tool only for budget",
+          "Data quality 'mostly OK'"
+        ],
+        "constraint": "Excel-heavy. Tools = obligation, not enabler.",
+        "graduate": "Champions, training, use cases. SSOT. Eliminate manual steps."
+      },
+      "3": {
+        "short": "Tools effective, core processes digital. Media breaks to ops.",
+        "desc": "Tools used effectively, core processes digital. Media breaks to ops. Digital-proficient, not native.",
+        "examples": [
+          "EPM for reporting + forecast",
+          "BI dashboards actively used",
+          "Auto-actuals from ERP",
+          "CRM/HR/ops still manual",
+          "Self-service emerging"
+        ],
+        "constraint": "Ops not integrated. Finance and ops data separated.",
+        "graduate": "API integrations. Data model → xP&A. Self-service layer."
+      },
+      "4": {
+        "short": "Finance + ops integrated, high automation.",
+        "desc": "Finance + ops fully integrated. High automation. Cross-functional analytics. Tech-savvy.",
+        "examples": [
+          "Unified platform (ERP+CRM+HR+Ops)",
+          "Fully integrated EPM",
+          "Automated data quality checks",
+          "Models without IT ticket",
+          "First advanced analytics"
+        ],
+        "constraint": "Skills gap. Dependent on tool champions.",
+        "graduate": "Upskilling: SQL, Python, BI modeling. Pilot advanced analytics. Data literacy."
+      },
+      "5": {
+        "short": "AI-enabled, self-service, analytics COE.",
+        "desc": "AI-enabled, self-service. Analytics COE. Technology = competitive advantage.",
+        "examples": [
+          "ML in production",
+          "NLQ for management",
+          "Fully automated cycle",
+          "COE with engineers + scientists",
+          "Real-time pipelines"
+        ],
+        "constraint": "Overload, tech debt, governance gap.",
+        "graduate": "Change management. Governance framework. Tech-stack reviews. Tech serves the business."
+      }
+    }
+  }
+}
