@@ -15,13 +15,16 @@ i18n
       de: { translation: de },
       en: { translation: en },
     },
-    fallbackLng: "de",
+    fallbackLng: "en",
     supportedLngs: SUPPORTED_LANGUAGES,
     interpolation: {
       escapeValue: false,
     },
     detection: {
-      order: ["localStorage", "navigator"],
+      // Only check localStorage for the user's previous choice. Skip
+      // navigator detection so English is the default first-visit
+      // experience regardless of browser locale.
+      order: ["localStorage"],
       caches: ["localStorage"],
       lookupLocalStorage: "i18nextLng",
     },
